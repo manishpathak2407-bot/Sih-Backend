@@ -23,10 +23,10 @@ class Settings(BaseSettings):
     # Storage Layer (PostgreSQL/TimescaleDB or SQLite fallback)
     DATABASE_URL: str = "sqlite+aiosqlite:///./sih_trajectories.db"
 
-    # IMU & Queue Configuration
-    IMU_SAMPLING_RATE_HZ: float = 50.0
-    WINDOW_SIZE: int = 50                      # 1 second window at 50Hz
-    BACKLOG_CHUNK_SIZE: int = 50               # Max packets to yield per backlog chunk
+    # IMU & Queue Configuration (10Hz Standard)
+    IMU_SAMPLING_RATE_HZ: float = 10.0         # 10 Hz sampling frequency (100ms intervals)
+    WINDOW_SIZE: int = 10                      # 1-second window = 10 samples at 10Hz
+    BACKLOG_CHUNK_SIZE: int = 20               # Max packets to yield per backlog chunk
     MAX_QUEUE_SIZE: int = 50000
 
     class Config:

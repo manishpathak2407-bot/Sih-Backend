@@ -1,7 +1,7 @@
 """
-Complete Mobile Client Simulator.
-Simulates a Flutter client streaming live IMU data, undergoing network dropouts,
-buffering offline backlogs, reconnecting with jitter, and receiving ML-corrected coordinates.
+Backend Integration Test Simulator (10Hz IMU).
+Simulates incoming 10Hz client sensor streams, network outages, backlog chunking,
+NTP time synchronization, and verified coordinate streaming.
 """
 
 import asyncio
@@ -26,17 +26,14 @@ async def get_token() -> str:
         print(f"[AUTH] Obtained JWT Token: {token[:25]}...")
         return token
 
-def generate_imu_packet(seq: int, timestamp: float, walking: bool = True):
-    """Generates synthetic pedestrian IMU frame (50Hz walking pattern)."""
-    # 1-2 Hz sinusoidal step pattern on acceleration
-    step_freq = 1.8
-    t = timestamp
-    ax = 0.3 * random.uniform(-0.1, 0.1)
-    ay = 0.8 * random.uniform(0.9, 1.1) if walking else 0.0
-    az = 9.81 + (1.2 * random.uniform(-1, 1) if walking else 0.0)
+def generate_10hz_packet(seq: int, timestamp: float, walking: bool = True):
+    """Generates synthetic 10Hz IMU packet (100ms interval)."""
+    ax = 0.2 * random.uniform(-0.1, 0.1)
+    ay = 0.5 * random.uniform(0.9, 1.1) if walking else 0.0
+    az = 9.81 + (0.8 * random.uniform(-1, 1) if walking else 0.0)
 
-    gx = 0.05 * random.uniform(-1, 1)
-    gy = 0.05 * random.uniform(-1, 1)
+    gx = 0.03 * random.uniform(-1, 1)
+    gy = 0.03 * random.uniform(-1, 1)
     gz = 0.02 * random.uniform(-1, 1)
 
     return {
@@ -55,14 +52,13 @@ def generate_imu_packet(seq: int, timestamp: float, walking: bool = True):
 
 async def run_simulation():
     print("=" * 65)
-    print(" Starting SIH Mobile Client End-to-End Test Simulator")
+    print(" Starting Backend Integration Test (10Hz Ingestion & Prioritization)")
     print("=" * 65)
 
-    # 1. Fetch JWT Token
     try:
         token = await get_token()
     except Exception as e:
-        print(f"Failed to connect to backend HTTP at {BACKEND_HTTP}. Make sure server is running!")
+        print(f"Cannot reach backend at {BACKEND_HTTP}. Make sure server is running!")
         print(f"Error: {e}")
         return
 
@@ -72,80 +68,73 @@ async def run_simulation():
     async with websockets.connect(ws_url) as ws:
         print("[WS] Connected successfully!")
 
-        # 2. Time Synchronization Handshake
+        # 1. NTP 3-Way Handshake
         t_send = time.time()
         await ws.send(json.dumps({"type": "time_sync", "t_client_send": t_send}))
         resp = json.loads(await ws.recv())
         t_recv = time.time()
-        print(f"[TIME_SYNC] NTP Handshake ACK: RTT={round((t_recv - t_send)*1000, 2)}ms")
+        print(f"[TIME_SYNC] NTP Handshake: Round-Trip = {round((t_recv - t_send)*1000, 2)}ms")
 
         seq = 1
 
-        # 3. Stream Real-Time Live Frames (Priority 0)
-        print("\n--- PHASE 1: Real-Time Live Streaming (15 frames) ---")
-        for _ in range(15):
-            packet = generate_imu_packet(seq, time.time())
+        # 2. Stream 10Hz Live Real-Time Data (Priority 0)
+        print("\n--- PHASE 1: Real-Time 10Hz Streaming (100ms packets) ---")
+        for _ in range(10):
+            packet = generate_10hz_packet(seq, time.time())
             packet["type"] = "live"
             await ws.send(json.dumps(packet))
             seq += 1
-            await asyncio.sleep(0.04)  # ~25Hz rate
+            await asyncio.sleep(0.10)  # Exact 10Hz rate
 
-            # Check server response
             try:
-                server_msg = await asyncio.wait_for(ws.recv(), timeout=0.1)
+                server_msg = await asyncio.wait_for(ws.recv(), timeout=0.15)
                 parsed = json.loads(server_msg)
-                print(f"  [LIVE FEEDBACK] Seq {parsed['seq']} -> Pos: ({parsed['x']}, {parsed['y']}, {parsed['z']}) | Cache Hit: {parsed.get('is_cache_hit')}")
+                print(f"  [10Hz FEEDBACK] Seq {parsed['seq']} -> Pos: ({parsed['x']}, {parsed['y']}, {parsed['z']}) | Verified: {parsed.get('is_verified')}")
             except asyncio.TimeoutError:
                 pass
 
-        # 4. Simulate Network Drop & Local Buffering
-        print("\n--- PHASE 2: Simulating 2-Second Network Dropout ---")
-        print("  * Disconnecting WebSocket...")
+        # 3. Simulate Network Outage
+        print("\n--- PHASE 2: Simulating 2-Second Network Drop ---")
         await ws.close()
 
-    print("  * Phone is OFFLINE: Buffering readings locally in SQLite...")
+    print("  * Disconnected: Accumulating 10Hz offline backlog (20 packets = 2 sec)...")
     offline_buffer = []
-    for _ in range(30):
-        offline_buffer.append(generate_imu_packet(seq, time.time()))
+    for _ in range(20):
+        offline_buffer.append(generate_10hz_packet(seq, time.time()))
         seq += 1
-        await asyncio.sleep(0.02)
+        await asyncio.sleep(0.10)
 
-    print(f"  * Buffered {len(offline_buffer)} readings locally.")
-
-    # 5. Jittered Exponential Backoff Reconnection
-    print("\n--- PHASE 3: Reconnecting with Jittered Backoff ---")
-    jitter_delay = random.uniform(0.1, 0.5)
-    print(f"  * Applying jitter delay: {round(jitter_delay, 3)}s")
-    await asyncio.sleep(jitter_delay)
+    # 4. Reconnect with Jitter
+    print("\n--- PHASE 3: Reconnecting with Jitter ---")
+    await asyncio.sleep(random.uniform(0.1, 0.3))
 
     async with websockets.connect(ws_url) as ws:
         print("  * Reconnected successfully!")
 
-        # 6. Transmit Backlog Chunk (Priority 1)
-        print(f"\n--- PHASE 4: Transmitting Backlog Chunk ({len(offline_buffer)} items) ---")
+        # 5. Flush Backlog Chunk (Priority 1)
+        print(f"\n--- PHASE 4: Ingesting Backlog Chunk ({len(offline_buffer)} items) ---")
         backlog_msg = {
             "type": "backlog",
             "chunk": offline_buffer
         }
         await ws.send(json.dumps(backlog_msg))
 
-        # Receive feedback
-        for _ in range(15):
+        for _ in range(10):
             try:
                 server_msg = await asyncio.wait_for(ws.recv(), timeout=0.5)
                 parsed = json.loads(server_msg)
-                print(f"  [BACKLOG RECONCILED] Seq {parsed['seq']} -> Pos: ({parsed['x']}, {parsed['y']}, {parsed['z']}) | Cache Hit: {parsed.get('is_cache_hit')}")
+                print(f"  [BACKLOG RECONCILED] Seq {parsed['seq']} -> Pos: ({parsed['x']}, {parsed['y']}, {parsed['z']})")
             except asyncio.TimeoutError:
                 break
 
-    # 7. Query Health & Metrics
-    print("\n--- PHASE 5: Checking Backend Health & ML Cache Metrics ---")
+    # 6. Check Health & Metrics
+    print("\n--- PHASE 5: Checking Backend Health ---")
     async with httpx.AsyncClient() as client:
         health = (await client.get(f"{BACKEND_HTTP}/health")).json()
         print(f"Health Status: {json.dumps(health, indent=2)}")
 
     print("\n" + "=" * 65)
-    print(" Simulation Completed Successfully! All 8 Mechanisms Verified.")
+    print(" 10Hz Backend Integration Verification Complete!")
     print("=" * 65)
 
 if __name__ == "__main__":

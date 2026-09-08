@@ -8,7 +8,7 @@ from app.fusion.coordinates import (
 
 class IMUKalmanFilter:
     """
-    9-DOF Extended Kalman Filter for Dead Reckoning.
+    9-DOF Extended Kalman Filter for Dead Reckoning tuned for 10 Hz IMU streams.
     Fuses Accelerometer (3-axis), Gyroscope (3-axis), and Magnetometer (3-axis).
     
     State Vector (9 elements):
@@ -27,11 +27,11 @@ class IMUKalmanFilter:
         else:
             self.P = np.eye(9, dtype=np.float64) * 0.1
 
-        # Process Noise Covariance (Q)
+        # Process Noise Covariance (Q) - Tuned for 10Hz (dt = 0.1s)
         self.Q = np.eye(9, dtype=np.float64) * 0.05
-        self.Q[0:3, 0:3] *= 0.01  # Position uncertainty grows slower
-        self.Q[3:6, 3:6] *= 0.1   # Velocity process noise
-        self.Q[6:9, 6:9] *= 0.02  # Angular process noise
+        self.Q[0:3, 0:3] *= 0.02  # Position uncertainty
+        self.Q[3:6, 3:6] *= 0.15  # Velocity process noise
+        self.Q[6:9, 6:9] *= 0.05  # Angular process noise
 
         # Measurement Noise Covariance (R)
         self.R = np.eye(3, dtype=np.float64) * 0.2
@@ -41,9 +41,10 @@ class IMUKalmanFilter:
     def predict(self, accel_body: np.ndarray, gyro_body: np.ndarray, dt: float):
         """
         Kinematic prediction step over elapsed time dt (seconds).
+        For 10Hz streams, dt is typically ~0.10s.
         """
         if dt <= 0.0:
-            dt = 0.02  # Default to 50Hz (20ms)
+            dt = 0.10  # Default to 10Hz (100ms)
 
         roll, pitch, yaw = float(self.x[6, 0]), float(self.x[7, 0]), float(self.x[8, 0])
 
@@ -62,9 +63,9 @@ class IMUKalmanFilter:
         # Zero velocity update (ZUPT) heuristic for pedestrian standing still:
         accel_mag = np.linalg.norm(accel_body)
         gyro_mag = np.linalg.norm(gyro_body)
-        if abs(accel_mag - GRAVITY) < 0.2 and gyro_mag < 0.05:
+        if abs(accel_mag - GRAVITY) < 0.25 and gyro_mag < 0.05:
             # Device stationary: decay velocities to 0
-            self.x[3:6, 0] *= 0.8
+            self.x[3:6, 0] *= 0.7
             a_nav = np.zeros(3)
 
         # 3. Numerical Integration for Velocity and Position
@@ -105,12 +106,12 @@ class IMUKalmanFilter:
 
     def process_sample(self, packet: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Process a single IMU reading packet and return current rough fused state.
+        Process a single IMU reading packet (at 10Hz) and return rough fused state.
         """
         current_ts = packet.get("timestamp", 0.0)
-        dt = (current_ts - self.last_timestamp) if self.last_timestamp else 0.02
-        # Clamp dt to reasonable values (e.g. 1ms to 200ms)
-        dt = max(0.001, min(0.2, dt))
+        dt = (current_ts - self.last_timestamp) if self.last_timestamp else 0.10
+        # Clamp dt to reasonable bounds around 10Hz (e.g. 0.02s to 1.0s)
+        dt = max(0.01, min(1.0, dt))
         self.last_timestamp = current_ts
 
         accel = np.array([packet.get("ax", 0.0), packet.get("ay", 0.0), packet.get("az", 0.0)])
