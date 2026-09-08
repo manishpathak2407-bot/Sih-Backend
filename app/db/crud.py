@@ -36,6 +36,8 @@ async def get_last_known_position(db: AsyncSession, device_id: str) -> Optional[
         "roll": point.roll,
         "pitch": point.pitch,
         "yaw": point.yaw,
+        "movement_state": point.movement_state or "REST",
+        "step_count": point.step_count or 0,
         "is_verified": point.is_verified,
         "covariance": json.loads(point.covariance_json) if point.covariance_json else None
     }
@@ -59,6 +61,8 @@ async def save_trajectory_point(db: AsyncSession, point_data: Dict[str, Any]) ->
         roll=point_data.get("roll", 0.0),
         pitch=point_data.get("pitch", 0.0),
         yaw=point_data.get("yaw", 0.0),
+        movement_state=point_data.get("movement_state", "REST"),
+        step_count=point_data.get("step_count", 0),
         is_backlog=point_data.get("is_backlog", False),
         is_verified=point_data.get("is_verified", True),
         covariance_json=json.dumps(point_data.get("covariance")) if point_data.get("covariance") else None,
@@ -92,6 +96,8 @@ async def save_trajectory_batch(db: AsyncSession, points_data: List[Dict[str, An
                 roll=p.get("roll", 0.0),
                 pitch=p.get("pitch", 0.0),
                 yaw=p.get("yaw", 0.0),
+                movement_state=p.get("movement_state", "REST"),
+                step_count=p.get("step_count", 0),
                 is_backlog=True,
                 is_verified=p.get("is_verified", True),
                 covariance_json=json.dumps(p.get("covariance")) if p.get("covariance") else None,

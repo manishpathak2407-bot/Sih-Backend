@@ -98,6 +98,8 @@ async def get_device_trajectory(
             "roll": p.roll,
             "pitch": p.pitch,
             "yaw": p.yaw,
+            "movement_state": p.movement_state or "REST",
+            "step_count": p.step_count or 0,
             "is_backlog": p.is_backlog,
             "is_verified": p.is_verified
         }

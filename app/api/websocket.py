@@ -46,6 +46,8 @@ async def restore_or_init_filter(device_id: str) -> IMUKalmanFilter:
             kf.x[6, 0] = last_pos["roll"]
             kf.x[7, 0] = last_pos["pitch"]
             kf.x[8, 0] = last_pos["yaw"]
+            kf.movement_state = last_pos.get("movement_state", "REST")
+            kf.step_count = last_pos.get("step_count", 0)
             kf.last_timestamp = last_pos["timestamp"]
             return kf
 
@@ -143,6 +145,8 @@ async def queue_worker():
                 "roll": round(fused_state["roll"], 4),
                 "pitch": round(fused_state["pitch"], 4),
                 "yaw": round(fused_state["yaw"], 4),
+                "movement_state": fused_state.get("movement_state", "REST"),
+                "step_count": fused_state.get("step_count", 0),
                 "is_backlog": is_backlog,
                 "is_verified": True
             }

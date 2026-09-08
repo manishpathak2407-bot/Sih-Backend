@@ -1,6 +1,7 @@
 # 10Hz Dead Reckoning Backend Engine - SIH 2026
 import numpy as np
 from typing import Dict, Any, Optional
+from collections import deque
 from app.fusion.coordinates import (
     body_to_nav_acceleration,
     calculate_tilt_compensated_heading,
@@ -9,14 +10,16 @@ from app.fusion.coordinates import (
 
 class IMUKalmanFilter:
     """
-    9-DOF Extended Kalman Filter for Dead Reckoning tuned for 10 Hz IMU streams.
+    9-DOF Extended Kalman Filter for Dead Reckoning with Pedestrian Step & Cadence Fusion.
     Fuses Accelerometer (3-axis), Gyroscope (3-axis), and Magnetometer (3-axis).
     
-    State Vector (9 elements):
-    x = [px, py, pz, vx, vy, vz, roll, pitch, yaw]^T
+    Supports 3 Operational Modes:
+    1. STATIONARY (Rest): Hard-locks velocity to 0.0 m/s and freezes position.
+    2. MOVING (Walking): Actively integrates step kinematics along the estimated heading.
+    3. ADAPTIVE: Auto-detects transition between REST and MOVING from sensor kinematics.
     """
     def __init__(self, initial_state: Optional[np.ndarray] = None, initial_covariance: Optional[np.ndarray] = None):
-        # 9x1 State Vector
+        # 9x1 State Vector: [px, py, pz, vx, vy, vz, roll, pitch, yaw]^T
         if initial_state is not None:
             self.x = initial_state.astype(np.float64)
         else:
@@ -30,74 +33,96 @@ class IMUKalmanFilter:
 
         # Process Noise Covariance (Q) - Tuned for 10Hz (dt = 0.1s)
         self.Q = np.eye(9, dtype=np.float64) * 0.05
-        self.Q[0:3, 0:3] *= 0.02  # Position uncertainty
-        self.Q[3:6, 3:6] *= 0.15  # Velocity process noise
-        self.Q[6:9, 6:9] *= 0.05  # Angular process noise
+        self.Q[0:3, 0:3] *= 0.02
+        self.Q[3:6, 3:6] *= 0.10
+        self.Q[6:9, 6:9] *= 0.05
 
         # Measurement Noise Covariance (R)
         self.R = np.eye(3, dtype=np.float64) * 0.2
 
         self.last_timestamp: Optional[float] = None
 
-    def predict(self, accel_body: np.ndarray, gyro_body: np.ndarray, dt: float):
+        # Kinematic Motion State & Step Detection
+        self.movement_state: str = "REST"  # "REST" or "MOVING"
+        self.step_count: int = 0
+        self._accel_history = deque(maxlen=10)  # 1-second rolling window at 10Hz
+        self._last_step_time = 0.0
+        self._step_length = 0.68  # Standard pedestrian stride (meters)
+
+    def predict(self, accel_body: np.ndarray, gyro_body: np.ndarray, dt: float, mode: str = "adaptive"):
         """
         Kinematic prediction step over elapsed time dt (seconds).
-        For 10Hz streams, dt is typically ~0.10s.
+        mode can be: 'stationary', 'moving', or 'adaptive'
         """
         if dt <= 0.0:
-            dt = 0.10  # Default to 10Hz (100ms)
+            dt = 0.10
 
         roll, pitch, yaw = float(self.x[6, 0]), float(self.x[7, 0]), float(self.x[8, 0])
 
-        # 1. Update Euler angles using angular rates from gyroscope
+        # 1. Attitude Propagation from Gyroscope
         gx, gy, gz = gyro_body[0], gyro_body[1], gyro_body[2]
         self.x[6, 0] += gx * dt
         self.x[7, 0] += gy * dt
         self.x[8, 0] += gz * dt
-
-        # Wrap yaw between -pi and pi
         self.x[8, 0] = (self.x[8, 0] + np.pi) % (2 * np.pi) - np.pi
 
         # 2. Transform body acceleration into world navigation frame (gravity-free)
         a_nav = body_to_nav_acceleration(accel_body, roll, pitch, yaw)
 
-        # 3. Robust Zero Velocity Update (ZUPT) - Stationary State Detection
-        accel_mag = np.linalg.norm(accel_body)
-        gyro_mag = np.linalg.norm(gyro_body)
+        # 3. Kinematic Motion State & Step Analysis
+        accel_mag = float(np.linalg.norm(accel_body))
+        gyro_mag = float(np.linalg.norm(gyro_body))
+        self._accel_history.append(accel_mag)
+        
+        # Calculate dynamic acceleration variance
+        accel_var = float(np.var(self._accel_history)) if len(self._accel_history) >= 4 else 0.0
 
-        # Device is resting/stationary when total acceleration is ~1g (Earth gravity) and angular rate is near zero
-        is_stationary = (abs(accel_mag - GRAVITY) < 0.40) and (gyro_mag < 0.12)
+        # Mode Determination:
+        if mode == "stationary":
+            is_moving = False
+        elif mode == "moving":
+            is_moving = True
+        else:
+            # Adaptive detection: dynamic variance > 0.15 or deviation from 1g > 0.40 indicates human movement
+            is_moving = (accel_var > 0.15) or (abs(accel_mag - GRAVITY) > 0.45) or (gyro_mag > 0.25)
 
-        if is_stationary:
-            # Device stationary: Hard clamp velocity to exactly 0.0 m/s (ZERO phantom drift!)
+        if is_moving:
+            self.movement_state = "MOVING"
+
+            # Step detection & velocity projection
+            current_time = self.last_timestamp or 0.0
+            # Check for walking step peak (at least 0.35s between steps = max 2.8 steps/s)
+            is_step_peak = (accel_mag - GRAVITY) > 0.35 and (current_time - self._last_step_time) > 0.35
+            
+            if is_step_peak or mode == "moving":
+                if is_step_peak:
+                    self.step_count += 1
+                    self._last_step_time = current_time
+
+                # Walking velocity along current heading
+                speed = 1.15  # ~1.15 m/s typical walking speed
+                self.x[3, 0] = speed * np.cos(yaw)  # Vx (East)
+                self.x[4, 0] = speed * np.sin(yaw)  # Vy (North)
+                self.x[5, 0] = 0.0                  # Vz (Vertical)
+
+                # Advance position
+                self.x[0, 0] += self.x[3, 0] * dt
+                self.x[1, 0] += self.x[4, 0] * dt
+            else:
+                # Coast with decay
+                self.x[3:6, 0] *= 0.90
+                self.x[0, 0] += self.x[3, 0] * dt
+                self.x[1, 0] += self.x[4, 0] * dt
+
+        else:
+            # Hard-lock to REST / STATIONARY
+            self.movement_state = "REST"
             self.x[3:6, 0] = 0.0
             a_nav = np.zeros(3)
-            # Reset velocity uncertainty
             self.P[3:6, 3:6] = np.eye(3) * 0.001
-        else:
-            # Acceleration deadband: filter out sensor white noise below 0.15 m/s^2
-            DEADBAND = 0.15
-            for i in range(3):
-                if abs(a_nav[i]) < DEADBAND:
-                    a_nav[i] = 0.0
-                else:
-                    a_nav[i] -= np.sign(a_nav[i]) * DEADBAND
+            # Position does NOT change!
 
-            # 4. Numerical Integration for Velocity and Position
-            # v = v + a * dt
-            self.x[3, 0] += a_nav[0] * dt
-            self.x[4, 0] += a_nav[1] * dt
-            self.x[5, 0] += a_nav[2] * dt
-
-            # Velocity damping to prevent infinite coasting
-            self.x[3:6, 0] *= 0.95
-
-            # p = p + v * dt + 0.5 * a * dt^2
-            self.x[0, 0] += self.x[3, 0] * dt + 0.5 * a_nav[0] * (dt ** 2)
-            self.x[1, 0] += self.x[4, 0] * dt + 0.5 * a_nav[1] * (dt ** 2)
-            self.x[2, 0] += self.x[5, 0] * dt + 0.5 * a_nav[2] * (dt ** 2)
-
-        # 5. Covariance Propagation
+        # 4. Covariance Propagation
         F = np.eye(9)
         F[0:3, 3:6] = np.eye(3) * dt
         self.P = F @ self.P @ F.T + self.Q
@@ -107,12 +132,10 @@ class IMUKalmanFilter:
         roll, pitch = float(self.x[6, 0]), float(self.x[7, 0])
         mag_yaw = calculate_tilt_compensated_heading(mag_body, roll, pitch)
 
-        # Measurement model for yaw
         H = np.zeros((1, 9))
         H[0, 8] = 1.0
 
         y = np.array([[mag_yaw]]) - (H @ self.x)
-        # Wrap residual
         y[0, 0] = (y[0, 0] + np.pi) % (2 * np.pi) - np.pi
 
         R_yaw = np.array([[0.3]])
@@ -124,21 +147,22 @@ class IMUKalmanFilter:
 
     def process_sample(self, packet: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Process a single IMU reading packet (at 10Hz) and return rough fused state.
+        Process a single IMU reading packet (at 10Hz) with mode specification.
         """
         current_ts = packet.get("timestamp", 0.0)
         dt = (current_ts - self.last_timestamp) if self.last_timestamp else 0.10
-        # Clamp dt to reasonable bounds around 10Hz (e.g. 0.02s to 1.0s)
         dt = max(0.01, min(1.0, dt))
         self.last_timestamp = current_ts
+
+        mode = packet.get("mode", "adaptive")
 
         accel = np.array([packet.get("ax", 0.0), packet.get("ay", 0.0), packet.get("az", 0.0)])
         gyro = np.array([packet.get("gx", 0.0), packet.get("gy", 0.0), packet.get("gz", 0.0)])
         
-        # Prediction step
-        self.predict(accel, gyro, dt)
+        # Prediction step with mode awareness
+        self.predict(accel, gyro, dt, mode=mode)
 
-        # Measurement update if magnetometer data present
+        # Magnetometer measurement update
         if "mx" in packet and "my" in packet and "mz" in packet:
             mag = np.array([packet["mx"], packet["my"], packet["mz"]])
             if np.linalg.norm(mag) > 1e-3:
@@ -154,6 +178,8 @@ class IMUKalmanFilter:
             "roll": float(self.x[6, 0]),
             "pitch": float(self.x[7, 0]),
             "yaw": float(self.x[8, 0]),
+            "movement_state": self.movement_state,
+            "step_count": self.step_count,
             "covariance": self.P.tolist()
         }
 
@@ -162,7 +188,9 @@ class IMUKalmanFilter:
         return {
             "x": self.x.tolist(),
             "P": self.P.tolist(),
-            "last_timestamp": self.last_timestamp
+            "last_timestamp": self.last_timestamp,
+            "movement_state": self.movement_state,
+            "step_count": self.step_count
         }
 
     @classmethod
@@ -173,5 +201,6 @@ class IMUKalmanFilter:
             initial_covariance=np.array(state_dict["P"])
         )
         kf.last_timestamp = state_dict.get("last_timestamp")
+        kf.movement_state = state_dict.get("movement_state", "REST")
+        kf.step_count = state_dict.get("step_count", 0)
         return kf
-

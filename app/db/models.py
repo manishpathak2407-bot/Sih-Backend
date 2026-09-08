@@ -39,7 +39,9 @@ class TrajectoryPoint(Base):
     
     # Metadata & Quality
     is_backlog = Column(Boolean, default=False)
-    is_verified = Column(Boolean, default=True)  # True if ML drift corrected
+    is_verified = Column(Boolean, default=True)
+    movement_state = Column(String(20), default="REST")  # "REST" or "MOVING"
+    step_count = Column(Integer, default=0)
     covariance_json = Column(Text, nullable=True)
     raw_sensor_json = Column(Text, nullable=True)
 
