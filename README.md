@@ -112,10 +112,15 @@ python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 *(Automatically falls back to SQLite and in-memory LRU cache if Redis/Postgres are not installed).*
 
-### Docker Production Stack:
-```powershell
-docker compose up -d
+### Production VPS / Cloud VM Deployment (AWS, DigitalOcean, Azure):
+On your remote Ubuntu/Debian server, run:
+```bash
+git clone https://github.com/manishpathak2407-bot/Sih-Backend.git
+cd Sih-Backend
+chmod +x deploy.sh
+./deploy.sh
 ```
+*This automatically configures Docker, launches the FastAPI backend, Redis cache, and TimescaleDB containers, and verifies the health endpoint.*
 
 ### Integration Test:
 ```powershell

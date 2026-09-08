@@ -1,4 +1,3 @@
-# 10Hz Dead Reckoning Backend Engine - SIH 2026
 version: '3.8'
 
 services:
@@ -10,14 +9,16 @@ services:
     environment:
       - HOST=0.0.0.0
       - PORT=8000
-      - DEBUG=True
+      - DEBUG=False
       - SECRET_KEY=sih_super_secure_dr_jwt_secret_key_2026
       - REDIS_URL=redis://redis:6379/0
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@timescaledb:5432/sih_db
+      - IMU_SAMPLING_RATE_HZ=10.0
+      - BACKLOG_CHUNK_SIZE=20
     depends_on:
       - redis
       - timescaledb
-    restart: unless-stopped
+    restart: always
 
   redis:
     image: redis:7-alpine
@@ -27,7 +28,7 @@ services:
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
-    restart: unless-stopped
+    restart: always
 
   timescaledb:
     image: timescale/timescaledb:latest-pg16
@@ -40,9 +41,8 @@ services:
       - POSTGRES_DB=sih_db
     volumes:
       - timescaledb_data:/var/lib/postgresql/data
-    restart: unless-stopped
+    restart: always
 
 volumes:
   redis_data:
   timescaledb_data:
-
