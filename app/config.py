@@ -1,6 +1,5 @@
 from pydantic_settings import BaseSettings
 from functools import lru_cache
-from typing import Optional
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "SIH Dead Reckoning Backend"
@@ -17,7 +16,6 @@ class Settings(BaseSettings):
     # Caching Layer (Redis with in-memory fallback)
     REDIS_URL: str = "redis://localhost:6379/0"
     REDIS_TTL_LIVE_SEC: int = 3600             # 1 hour for device live position
-    REDIS_TTL_ML_CACHE_SEC: int = 1800         # 30 mins for window hash cache
     REDIS_TTL_CALIBRATION_SEC: int = 86400     # 24 hours for calibration constants
 
     # Storage Layer (PostgreSQL/TimescaleDB or SQLite fallback)
@@ -25,7 +23,6 @@ class Settings(BaseSettings):
 
     # IMU & Queue Configuration (10Hz Standard)
     IMU_SAMPLING_RATE_HZ: float = 10.0         # 10 Hz sampling frequency (100ms intervals)
-    WINDOW_SIZE: int = 10                      # 1-second window = 10 samples at 10Hz
     BACKLOG_CHUNK_SIZE: int = 20               # Max packets to yield per backlog chunk
     MAX_QUEUE_SIZE: int = 50000
 

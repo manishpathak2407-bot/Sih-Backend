@@ -134,7 +134,7 @@ async def run_simulation():
         print(f"Health Status: {json.dumps(health, indent=2)}")
 
     print("\n" + "=" * 65)
-    print(" 10Hz Backend Integration Verification Complete!")
+    print(" 10Hz Pure Dead Reckoning Backend Verification Complete!")
     print("=" * 65)
 
 if __name__ == "__main__":

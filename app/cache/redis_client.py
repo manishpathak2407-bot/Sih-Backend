@@ -35,7 +35,7 @@ class InMemoryCacheFallback:
 
 class CacheManager:
     """
-    Unified Cache Manager for Dead Reckoning State, ML window hashes, and calibration.
+    Unified Cache Manager for Dead Reckoning State and Calibration.
     Connects to Redis; gracefully degrades to memory cache if Redis is down.
     """
     def __init__(self):
@@ -79,7 +79,7 @@ class CacheManager:
                 logger.warning(f"Redis set failed: {e}. Falling back to memory.")
         return await self._memory_fallback.set(key, value, ex=ex)
 
-    # ---------------- Specific Entity Cache Helpers ----------------
+    # ---------------- Entity Cache Helpers ----------------
 
     async def get_live_device_state(self, device_id: str) -> Optional[Dict[str, Any]]:
         """Fetch current live state (position, velocity, orientation, covariance)."""
@@ -92,13 +92,15 @@ class CacheManager:
         key = f"device:state:{device_id}"
         await self.set(key, json.dumps(state), ex=settings.REDIS_TTL_LIVE_SEC)
 
-    async def get_ml_correction(self, cache_key: str) -> Optional[Dict[str, Any]]:
-        """Fetch cached ML drift output by window hash."""
-        val = await self.get(cache_key)
+    async def get_calibration(self, device_id: str) -> Optional[Dict[str, Any]]:
+        """Fetch per-device calibration constants."""
+        key = f"calib:{device_id}"
+        val = await self.get(key)
         return json.loads(val) if val else None
 
-    async def set_ml_correction(self, cache_key: str, correction: Dict[str, Any]):
-        """Store ML drift output for 30 minutes."""
-        await self.set(cache_key, json.dumps(correction), ex=settings.REDIS_TTL_ML_CACHE_SEC)
+    async def set_calibration(self, device_id: str, calib_data: Dict[str, Any]):
+        """Store calibration constants (TTL = 24 hours)."""
+        key = f"calib:{device_id}"
+        await self.set(key, json.dumps(calib_data), ex=settings.REDIS_TTL_CALIBRATION_SEC)
 
 cache_manager = CacheManager()

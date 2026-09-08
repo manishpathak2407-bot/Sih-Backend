@@ -1,14 +1,13 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 from datetime import timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_db_session
-from app.core.auth import create_access_token, verify_jwt_token
+from app.core.auth import create_access_token
 from app.cache.redis_client import cache_manager
 from app.api.websocket import queue_mgr, active_connections
-from app.ml.ml_bridge import ml_bridge
-from app.db.crud import get_trajectory_history, save_trajectory_batch
+from app.db.crud import get_trajectory_history
 
 router = APIRouter()
 
@@ -41,7 +40,7 @@ class BatchUploadRequest(BaseModel):
 
 @router.post("/auth/token", response_model=TokenResponse, summary="Mint JWT token for a device")
 async def generate_device_token(req: TokenRequest):
-    """Generates an authentication token for Flutter WebSocket handshake."""
+    """Generates an authentication token for WebSocket handshake."""
     token = create_access_token(
         data={"sub": req.device_id, "device_id": req.device_id},
         expires_delta=timedelta(minutes=req.expires_minutes)
@@ -70,13 +69,11 @@ async def upload_batch_sensor_data(req: BatchUploadRequest):
 @router.get("/health", summary="System healthcheck and live status")
 async def health_check():
     """Returns status of cache layer, queues, and active connections."""
-    ml_stats = ml_bridge.get_metrics()
     return {
         "status": "healthy",
         "redis_connected": cache_manager.is_redis_connected,
         "active_websockets": len(active_connections),
-        "queue_depth": queue_mgr.queue_size,
-        "ml_cache": ml_stats
+        "queue_depth": queue_mgr.queue_size
     }
 
 @router.get("/device/{device_id}/trajectory", summary="Fetch stored trajectory history")
@@ -97,6 +94,8 @@ async def get_device_trajectory(
             "vx": p.vx,
             "vy": p.vy,
             "vz": p.vz,
+            "roll": p.roll,
+            "pitch": p.pitch,
             "yaw": p.yaw,
             "is_backlog": p.is_backlog,
             "is_verified": p.is_verified

@@ -7,7 +7,6 @@ from app.core.auth import authenticate_ws
 from app.core.time_sync import TimeSyncManager
 from app.core.queue_manager import IngestionQueueManager
 from app.fusion.kalman_filter import IMUKalmanFilter
-from app.ml.ml_bridge import ml_bridge
 from app.cache.redis_client import cache_manager
 from app.db.database import AsyncSessionLocal
 from app.db.crud import get_last_known_position, save_trajectory_point
@@ -23,7 +22,7 @@ device_kalman_filters: Dict[str, IMUKalmanFilter] = {}
 async def restore_or_init_filter(device_id: str) -> IMUKalmanFilter:
     """
     Restores Kalman filter state from Redis, or falls back to TimescaleDB
-    if Redis key expired (Problem 6), or creates new filter.
+    if Redis key expired (after >1hr), or creates new filter.
     """
     # 1. Try Redis
     cached_state = await cache_manager.get_live_device_state(device_id)
@@ -89,7 +88,7 @@ async def websocket_track_endpoint(websocket: WebSocket, device_id: str):
                 await websocket.send_text(json.dumps(response))
                 continue
 
-            # 2. Real-Time Live Frame (Priority 0)
+            # 2. Real-Time Live Frame (10Hz, Priority 0)
             elif msg_type == "live":
                 await queue_mgr.enqueue_live(device_id, data)
 
@@ -126,39 +125,28 @@ async def queue_worker():
                 kf = await restore_or_init_filter(device_id)
                 device_kalman_filters[device_id] = kf
 
-            # 2. Kalman Filter Fusion (Stage 1: Statistical)
-            rough_state = kf.process_sample(packet)
-
-            # 3. Add to sliding sensor window
-            ml_bridge.add_sample(device_id, packet)
-
-            # 4. ML Bridge Drift Correction (Stage 2: Learned Neural Correction)
-            # Checks Redis window hash cache first -> O(1) hit if duplicate/backlog!
-            drift_vector, is_cache_hit = await ml_bridge.get_drift_correction(device_id)
-
-            # 5. Corrected True Position
-            corrected_x = rough_state["x"] - float(drift_vector[0])
-            corrected_y = rough_state["y"] - float(drift_vector[1])
-            corrected_z = rough_state["z"] - float(drift_vector[2])
+            # 2. 9-DOF IMU Kalman Filter Statistical Sensor Fusion
+            fused_state = kf.process_sample(packet)
 
             payload_out = {
                 "type": "position_update",
                 "device_id": device_id,
                 "seq": seq,
                 "timestamp": item.timestamp,
-                "x": round(corrected_x, 4),
-                "y": round(corrected_y, 4),
-                "z": round(corrected_z, 4),
-                "vx": round(rough_state["vx"], 4),
-                "vy": round(rough_state["vy"], 4),
-                "vz": round(rough_state["vz"], 4),
-                "yaw": round(rough_state["yaw"], 4),
+                "x": round(fused_state["x"], 4),
+                "y": round(fused_state["y"], 4),
+                "z": round(fused_state["z"], 4),
+                "vx": round(fused_state["vx"], 4),
+                "vy": round(fused_state["vy"], 4),
+                "vz": round(fused_state["vz"], 4),
+                "roll": round(fused_state["roll"], 4),
+                "pitch": round(fused_state["pitch"], 4),
+                "yaw": round(fused_state["yaw"], 4),
                 "is_backlog": is_backlog,
-                "is_cache_hit": is_cache_hit,
                 "is_verified": True
             }
 
-            # 6. Push back to Flutter client if currently connected
+            # 3. Push back to client if currently connected
             ws = active_connections.get(device_id)
             if ws:
                 try:
@@ -166,15 +154,11 @@ async def queue_worker():
                 except Exception:
                     pass
 
-            # 7. Update Redis Live Cache (1-hour TTL)
+            # 4. Update Redis Live Cache (1-hour TTL)
             state_dict = kf.to_state_dict()
-            # Update state with latest corrected position
-            state_dict["x"][0][0] = corrected_x
-            state_dict["x"][1][0] = corrected_y
-            state_dict["x"][2][0] = corrected_z
             await cache_manager.set_live_device_state(device_id, state_dict)
 
-            # 8. Asynchronously persist to database
+            # 5. Asynchronously persist to database
             async with AsyncSessionLocal() as session:
                 await save_trajectory_point(session, payload_out)
 
