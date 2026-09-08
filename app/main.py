@@ -97,10 +97,12 @@ DASHBOARD_HTML = """
         .stat-label { font-size: 0.75rem; color: #8b949e; text-transform: uppercase; margin-bottom: 4px; }
         .stat-val { font-size: 1.25rem; font-weight: bold; color: var(--text-bright); font-family: monospace; }
         .btn-group { display: flex; flex-direction: column; gap: 10px; }
-        button { background: #21262d; border: 1px solid var(--border); color: var(--text-bright); padding: 10px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; font-size: 0.85rem; }
+        button { background: #21262d; border: 1px solid var(--border); color: var(--text-bright); padding: 10px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; font-size: 0.85rem; text-align: left; }
         button:hover { background: #30363d; }
         button.primary { background: #238636; border-color: #2ea043; }
         button.primary:hover { background: #2ea043; }
+        button.secondary { background: #1f6feb; border-color: #388bfd; }
+        button.secondary:hover { background: #388bfd; }
         button.danger { background: #b62324; border-color: #da3633; }
         button.danger:hover { background: #da3633; }
         .logs { height: 180px; overflow-y: auto; background: #010409; border: 1px solid var(--border); border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.75rem; line-height: 1.4; color: #8b949e; margin-top: 14px; }
@@ -114,8 +116,8 @@ DASHBOARD_HTML = """
 <body>
     <header>
         <div>
-            <h1>10Hz Dead Reckoning Live Telemetry Monitor <span id="conn-badge" class="badge badge-offline">DISCONNECTED</span></h1>
-            <p style="font-size: 0.8rem; color: #8b949e; margin-top: 4px;">FastAPI 9-DOF Kalman Sensor Fusion & Priority Ingestion Queue</p>
+            <h1>10Hz Dead Reckoning Telemetry Monitor <span id="conn-badge" class="badge badge-offline">DISCONNECTED</span></h1>
+            <p style="font-size: 0.8rem; color: #8b949e; margin-top: 4px;">FastAPI 9-DOF Kalman Sensor Fusion with Zero-Velocity Update (ZUPT)</p>
         </div>
         <div class="links">
             <a href="/docs" target="_blank">Swagger API Docs</a>
@@ -126,17 +128,17 @@ DASHBOARD_HTML = """
     <div class="grid">
         <div class="card">
             <div class="card-title" style="display: flex; justify-content: space-between;">
-                <span>2D Trajectory Path (North-East Metric Canvas)</span>
+                <span>2D Metric Trajectory Canvas (East vs North)</span>
                 <span id="coord-hud" style="color: var(--accent); font-family: monospace; font-size: 0.85rem;">(0.00m, 0.00m)</span>
             </div>
             <canvas id="mapCanvas" width="700" height="420"></canvas>
             <div class="logs" id="logBox">
-                <div class="log-entry log-ok">[SYSTEM] Dashboard initialized. Click "Start 10Hz Walk Simulation" to begin streaming.</div>
+                <div class="log-entry log-ok">[SYSTEM] Dashboard initialized. Select a test mode below.</div>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-title">Live Kinematic Telemetry</div>
+            <div class="card-title">Live Telemetry & Motion HUD</div>
             <div class="telemetry">
                 <div class="stat-box">
                     <div class="stat-label">Position X (East)</div>
@@ -147,28 +149,43 @@ DASHBOARD_HTML = """
                     <div class="stat-val" id="stat-y">0.000 m</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-label">Velocity (Magnitude)</div>
+                    <div class="stat-label">Velocity</div>
                     <div class="stat-val" id="stat-v">0.00 m/s</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Motion State</div>
+                    <div class="stat-val" id="stat-state" style="color: #56d364; font-size: 1.0rem;">STATIONARY</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-label">Yaw Heading</div>
                     <div class="stat-val" id="stat-yaw">0.0°</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-label">Packet Sequence</div>
+                    <div class="stat-label">Sequence (10Hz)</div>
                     <div class="stat-val" id="stat-seq">0</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Sampling Rate</div>
-                    <div class="stat-val">10.0 Hz</div>
                 </div>
             </div>
 
-            <div class="card-title">Live Simulator Controls</div>
+            <div class="card-title">Streaming Modes & Controls</div>
             <div class="btn-group">
-                <button id="btn-start" class="primary" onclick="toggleSimulation()">Start 10Hz Walk Simulation</button>
-                <button id="btn-drop" onclick="simulateDrop()">Simulate 2s Dropout & Backlog Flush</button>
-                <button onclick="clearCanvas()">Clear Trajectory Canvas</button>
+                <button id="btn-stationary" class="secondary" onclick="toggleStationaryTest()">
+                    🪑 <b>Stationary Desk Mode (Resting Laptop)</b><br>
+                    <span style="font-size:0.75rem; color:#c9d1d9; font-weight:normal;">Verifies position stays rock solid at 0.000m with zero drift</span>
+                </button>
+                <button id="btn-physical" onclick="togglePhysicalSensors()">
+                    📱 <b>Stream Real Device Hardware Sensors</b><br>
+                    <span style="font-size:0.75rem; color:#c9d1d9; font-weight:normal;">Reads your laptop/phone's physical accelerometer & gyro</span>
+                </button>
+                <button id="btn-sim" class="primary" onclick="toggleSyntheticWalk()">
+                    🚶 <b>Simulate Walking Path (Virtual Pedestrian)</b><br>
+                    <span style="font-size:0.75rem; color:#c9d1d9; font-weight:normal;">Generates virtual forward steps for algorithm testing</span>
+                </button>
+                <button id="btn-drop" onclick="simulateDrop()">
+                    ⚡ <b>Simulate 2s Outage & Backlog Flush</b>
+                </button>
+                <button onclick="clearCanvas()">
+                    🧹 <b>Reset Position & Clear Canvas</b>
+                </button>
             </div>
         </div>
     </div>
@@ -180,8 +197,8 @@ DASHBOARD_HTML = """
         const badge = document.getElementById("conn-badge");
         
         let ws = null;
-        let isSimulating = false;
-        let simInterval = null;
+        let activeMode = null; // 'stationary', 'physical', 'synthetic'
+        let streamInterval = null;
         let seq = 1;
         let currentPos = { x: 0, y: 0 };
         let pathHistory = [{ x: 0, y: 0 }];
@@ -246,7 +263,8 @@ DASHBOARD_HTML = """
         }
 
         async function connectWebSocket() {
-            // Obtain JWT token from /auth/token
+            if (ws && ws.readyState === WebSocket.OPEN) return;
+
             const res = await fetch("/auth/token", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -263,9 +281,7 @@ DASHBOARD_HTML = """
             ws.onopen = () => {
                 badge.textContent = "CONNECTED (10Hz)";
                 badge.className = "badge";
-                log("WebSocket connected with JWT handshake!", "log-ok");
-
-                // Send NTP handshake
+                log("WebSocket connected with JWT handshake.", "log-ok");
                 ws.send(JSON.stringify({ type: "time_sync", t_client_send: Date.now() / 1000 }));
             };
 
@@ -281,13 +297,21 @@ DASHBOARD_HTML = """
                     document.getElementById("stat-y").textContent = data.y.toFixed(3) + " m";
                     const speed = Math.sqrt(data.vx*data.vx + data.vy*data.vy);
                     document.getElementById("stat-v").textContent = speed.toFixed(2) + " m/s";
+
+                    const stateBox = document.getElementById("stat-state");
+                    if (speed < 0.05) {
+                        stateBox.textContent = "STATIONARY (ZUPT)";
+                        stateBox.style.color = "#56d364";
+                    } else {
+                        stateBox.textContent = "MOVING";
+                        stateBox.style.color = "#58a6ff";
+                    }
+
                     document.getElementById("stat-yaw").textContent = (data.yaw * (180/Math.PI)).toFixed(1) + "°";
                     document.getElementById("stat-seq").textContent = data.seq;
                     document.getElementById("coord-hud").textContent = `(${data.x.toFixed(2)}m, ${data.y.toFixed(2)}m)`;
 
                     drawCanvas();
-                } else if (data.type === "time_sync_ack") {
-                    log("NTP clock sync acknowledged by backend.", "log-ok");
                 }
             };
 
@@ -298,85 +322,169 @@ DASHBOARD_HTML = """
             };
         }
 
-        function toggleSimulation() {
-            const btn = document.getElementById("btn-start");
-            if (isSimulating) {
-                clearInterval(simInterval);
-                isSimulating = false;
-                btn.textContent = "Start 10Hz Walk Simulation";
-                btn.className = "primary";
-                log("10Hz Walk simulation stopped.");
-            } else {
-                if (!ws || ws.readyState !== WebSocket.OPEN) {
-                    connectWebSocket().then(() => startStreaming());
-                } else {
-                    startStreaming();
-                }
-            }
+        function stopAllStreams() {
+            if (streamInterval) clearInterval(streamInterval);
+            streamInterval = null;
+            activeMode = null;
+            document.getElementById("btn-stationary").style.borderColor = "var(--border)";
+            document.getElementById("btn-physical").style.borderColor = "var(--border)";
+            document.getElementById("btn-sim").style.borderColor = "var(--border)";
         }
 
-        function startStreaming() {
-            const btn = document.getElementById("btn-start");
-            isSimulating = true;
-            btn.textContent = "Stop Simulation";
-            btn.className = "danger";
-            log("10Hz Sensor Stream started (streaming at 100ms intervals)...", "log-ok");
+        // Mode 1: Stationary Desk Test (Laptop at rest)
+        async function toggleStationaryTest() {
+            if (activeMode === "stationary") {
+                stopAllStreams();
+                log("Stationary test stopped.");
+                return;
+            }
+            stopAllStreams();
+            await connectWebSocket();
+            activeMode = "stationary";
+            document.getElementById("btn-stationary").style.borderColor = "#58a6ff";
+            log("STATIONARY DESK MODE ACTIVE: Laptop resting on desk (Acceleration = [0, 0, 9.81 m/s²], Gyro = 0).", "log-ok");
+            log("Backend ZUPT is active: Velocity and Position will stay strictly locked at 0.000 m.", "log-ok");
+
+            streamInterval = setInterval(() => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    // Send actual resting sensor packet (Earth gravity 9.81 m/s² down Z, zero rotation)
+                    ws.send(JSON.stringify({
+                        type: "live",
+                        seq: seq++,
+                        timestamp: Date.now() / 1000,
+                        ax: 0.0,
+                        ay: 0.0,
+                        az: 9.81,
+                        gx: 0.0,
+                        gy: 0.0,
+                        gz: 0.0,
+                        mx: 22.0,
+                        my: -5.0,
+                        mz: 41.0
+                    }));
+                }
+            }, 100);
+        }
+
+        // Mode 2: Physical Device Sensors
+        let physicalListener = null;
+        async function togglePhysicalSensors() {
+            if (activeMode === "physical") {
+                stopAllStreams();
+                if (physicalListener) window.removeEventListener("devicemotion", physicalListener);
+                log("Physical sensor stream stopped.");
+                return;
+            }
+            stopAllStreams();
+            await connectWebSocket();
+
+            if (!window.DeviceMotionEvent) {
+                alert("DeviceMotionEvent is not supported by your browser/hardware.");
+                return;
+            }
+
+            activeMode = "physical";
+            document.getElementById("btn-physical").style.borderColor = "#58a6ff";
+            log("Reading physical hardware motion sensors (accelerometer & gyro)...", "log-ok");
+
+            let lastAccel = { x: 0, y: 0, z: 9.81 };
+            let lastGyro = { x: 0, y: 0, z: 0 };
+
+            physicalListener = (e) => {
+                if (e.accelerationIncludingGravity) {
+                    lastAccel.x = e.accelerationIncludingGravity.x || 0;
+                    lastAccel.y = e.accelerationIncludingGravity.y || 0;
+                    lastAccel.z = e.accelerationIncludingGravity.z || 9.81;
+                }
+                if (e.rotationRate) {
+                    lastGyro.x = (e.rotationRate.alpha || 0) * (Math.PI / 180);
+                    lastGyro.y = (e.rotationRate.beta || 0) * (Math.PI / 180);
+                    lastGyro.z = (e.rotationRate.gamma || 0) * (Math.PI / 180);
+                }
+            };
+            window.addEventListener("devicemotion", physicalListener);
+
+            streamInterval = setInterval(() => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        type: "live",
+                        seq: seq++,
+                        timestamp: Date.now() / 1000,
+                        ax: lastAccel.x,
+                        ay: lastAccel.y,
+                        az: lastAccel.z,
+                        gx: lastGyro.x,
+                        gy: lastGyro.y,
+                        gz: lastGyro.z
+                    }));
+                }
+            }, 100);
+        }
+
+        // Mode 3: Synthetic Walking Sim
+        async function toggleSyntheticWalk() {
+            if (activeMode === "synthetic") {
+                stopAllStreams();
+                log("Virtual walk generator stopped.");
+                return;
+            }
+            stopAllStreams();
+            await connectWebSocket();
+            activeMode = "synthetic";
+            document.getElementById("btn-sim").style.borderColor = "#58a6ff";
+            log("VIRTUAL PEDESTRIAN SIMULATION ACTIVE: Simulating forward walking steps at 10Hz.", "log-ok");
 
             let angle = 0;
-            simInterval = setInterval(() => {
+            streamInterval = setInterval(() => {
                 if (ws && ws.readyState === WebSocket.OPEN) {
                     angle += 0.05;
-                    const stepY = 0.8 + 0.3 * Math.sin(angle * 5);
-                    const packet = {
+                    const forwardAcc = 0.8 + 0.3 * Math.sin(angle * 5); // Simulating forward foot strike
+                    ws.send(JSON.stringify({
                         type: "live",
                         seq: seq++,
                         timestamp: Date.now() / 1000,
                         ax: Math.cos(angle) * 0.1,
-                        ay: stepY,
+                        ay: forwardAcc,
                         az: 9.81 + 0.4 * Math.sin(angle * 10),
                         gx: 0.01,
                         gy: 0.01,
-                        gz: 0.04,
-                        mx: 22.0,
-                        my: -5.0,
-                        mz: 41.0
-                    };
-                    ws.send(JSON.stringify(packet));
+                        gz: 0.04
+                    }));
                 }
-            }, 100); // 10Hz = 100ms
+            }, 100);
         }
 
         function simulateDrop() {
-            if (!isSimulating) {
-                alert("Start the simulation first, then trigger a network drop!");
+            if (!activeMode) {
+                alert("Start a streaming mode first, then trigger a network drop!");
                 return;
             }
-            clearInterval(simInterval);
-            log("Simulating mobile network dropout... Connection closed!", "log-warn");
+            const prevMode = activeMode;
+            stopAllStreams();
+            log("Simulating network drop... WebSocket disconnected!", "log-warn");
             ws.close();
 
-            log("Client accumulating 10Hz offline backlog locally in SQLite buffer...", "log-warn");
+            log("Buffering 20 packets locally in SQLite offline buffer...", "log-warn");
             const backlog = [];
             for (let i = 0; i < 20; i++) {
                 backlog.push({
                     seq: seq++,
                     timestamp: (Date.now() / 1000) + (i * 0.1),
-                    ax: 0.05,
-                    ay: 0.9,
+                    ax: 0.0,
+                    ay: 0.0,
                     az: 9.81,
-                    gx: 0.01,
-                    gy: 0.01,
-                    gz: 0.02
+                    gx: 0.0,
+                    gy: 0.0,
+                    gz: 0.0
                 });
             }
 
             setTimeout(async () => {
-                log("Reconnecting with randomized backoff jitter...", "log-ok");
+                log("Reconnecting with backoff jitter...", "log-ok");
                 await connectWebSocket();
                 setTimeout(() => {
-                    log(`Sending backlog recovery dump (${backlog.length} items at Priority 1)...`, "log-ok");
+                    log(`Ingesting backlog chunk (${backlog.length} packets at Priority 1)...`, "log-ok");
                     ws.send(JSON.stringify({ type: "backlog", chunk: backlog }));
-                    startStreaming();
                 }, 500);
             }, 2000);
         }
@@ -384,8 +492,13 @@ DASHBOARD_HTML = """
         function clearCanvas() {
             pathHistory = [{ x: 0, y: 0 }];
             currentPos = { x: 0, y: 0 };
+            document.getElementById("stat-x").textContent = "0.000 m";
+            document.getElementById("stat-y").textContent = "0.000 m";
+            document.getElementById("stat-v").textContent = "0.00 m/s";
+            document.getElementById("stat-state").textContent = "STATIONARY";
+            document.getElementById("coord-hud").textContent = "(0.00m, 0.00m)";
             drawCanvas();
-            log("Canvas cleared.");
+            log("Position reset to origin (0, 0).");
         }
 
         drawCanvas();

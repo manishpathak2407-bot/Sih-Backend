@@ -61,26 +61,43 @@ class IMUKalmanFilter:
         # 2. Transform body acceleration into world navigation frame (gravity-free)
         a_nav = body_to_nav_acceleration(accel_body, roll, pitch, yaw)
 
-        # Zero velocity update (ZUPT) heuristic for pedestrian standing still:
+        # 3. Robust Zero Velocity Update (ZUPT) - Stationary State Detection
         accel_mag = np.linalg.norm(accel_body)
         gyro_mag = np.linalg.norm(gyro_body)
-        if abs(accel_mag - GRAVITY) < 0.25 and gyro_mag < 0.05:
-            # Device stationary: decay velocities to 0
-            self.x[3:6, 0] *= 0.7
+
+        # Device is resting/stationary when total acceleration is ~1g (Earth gravity) and angular rate is near zero
+        is_stationary = (abs(accel_mag - GRAVITY) < 0.40) and (gyro_mag < 0.12)
+
+        if is_stationary:
+            # Device stationary: Hard clamp velocity to exactly 0.0 m/s (ZERO phantom drift!)
+            self.x[3:6, 0] = 0.0
             a_nav = np.zeros(3)
+            # Reset velocity uncertainty
+            self.P[3:6, 3:6] = np.eye(3) * 0.001
+        else:
+            # Acceleration deadband: filter out sensor white noise below 0.15 m/s^2
+            DEADBAND = 0.15
+            for i in range(3):
+                if abs(a_nav[i]) < DEADBAND:
+                    a_nav[i] = 0.0
+                else:
+                    a_nav[i] -= np.sign(a_nav[i]) * DEADBAND
 
-        # 3. Numerical Integration for Velocity and Position
-        # v = v + a * dt
-        self.x[3, 0] += a_nav[0] * dt
-        self.x[4, 0] += a_nav[1] * dt
-        self.x[5, 0] += a_nav[2] * dt
+            # 4. Numerical Integration for Velocity and Position
+            # v = v + a * dt
+            self.x[3, 0] += a_nav[0] * dt
+            self.x[4, 0] += a_nav[1] * dt
+            self.x[5, 0] += a_nav[2] * dt
 
-        # p = p + v * dt + 0.5 * a * dt^2
-        self.x[0, 0] += self.x[3, 0] * dt + 0.5 * a_nav[0] * (dt ** 2)
-        self.x[1, 0] += self.x[4, 0] * dt + 0.5 * a_nav[1] * (dt ** 2)
-        self.x[2, 0] += self.x[5, 0] * dt + 0.5 * a_nav[2] * (dt ** 2)
+            # Velocity damping to prevent infinite coasting
+            self.x[3:6, 0] *= 0.95
 
-        # 4. Covariance Propagation
+            # p = p + v * dt + 0.5 * a * dt^2
+            self.x[0, 0] += self.x[3, 0] * dt + 0.5 * a_nav[0] * (dt ** 2)
+            self.x[1, 0] += self.x[4, 0] * dt + 0.5 * a_nav[1] * (dt ** 2)
+            self.x[2, 0] += self.x[5, 0] * dt + 0.5 * a_nav[2] * (dt ** 2)
+
+        # 5. Covariance Propagation
         F = np.eye(9)
         F[0:3, 3:6] = np.eye(3) * dt
         self.P = F @ self.P @ F.T + self.Q
