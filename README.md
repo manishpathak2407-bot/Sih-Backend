@@ -70,7 +70,7 @@ When reconnecting after an outage, send buffered data in manageable chunks (max 
   ]
 }
 ```
-
+ 
 ### 5. Position Feedback Stream (Server $\to$ Client)
 The backend pushes back fused Kalman coordinates:
 ```json
@@ -88,6 +88,8 @@ The backend pushes back fused Kalman coordinates:
   "roll": 0.012,
   "pitch": -0.034,
   "yaw": 0.354,
+  "movement_state": "MOVING",
+  "step_count": 14,
   "is_backlog": false,
   "is_verified": true
 }
@@ -95,7 +97,29 @@ The backend pushes back fused Kalman coordinates:
 
 ---
 
-## 4. Key Architectural Mechanisms
+## 4. 3 Operational Modes & Zero Velocity Updates (ZUPT)
+
+The backend provides three operational modes to eliminate drift and preserve coordinates:
+
+1. **Mode 1: Stationary (Rest / ZUPT):**
+   - Hard Zero-Velocity Update (`ZUPT`).
+   - Velocity vector is forced to strictly `0.00 m/s`.
+   - Cartesian coordinates $(x, y)$ are completely frozen, guaranteeing **0.00m phantom drift** when the device is stationary.
+   - `movement_state` is set to `REST`.
+
+2. **Mode 2: Moving (Active Pedestrian Dead Reckoning):**
+   - Human step cadence detection (~1.8 Hz) integrated along heading ($\psi$).
+   - Computes displacement along heading angle with attitude filtering (Roll, Pitch, Yaw).
+   - Increments persistent step count and reports `movement_state` as `MOVING`.
+
+3. **Mode 3: Adaptive Storage:**
+   - Evaluates IMU acceleration variance dynamically: below threshold ($0.15 \text{ m/s}^2$) it auto-locks into `REST`, above threshold it activates `MOVING`.
+   - Persists every update into SQLite / TimescaleDB and Redis cache.
+   - Queryable via `GET /device/{device_id}/trajectory` or verified directly on the dashboard.
+
+---
+
+## 5. Key Architectural Mechanisms
 
 1. **Starvation-Free Backlog Ingestion:** Live 10Hz packets enter the priority queue at `Priority 0`, while backlog chunks enter at `Priority 1` and cooperatively yield to the event loop (`await asyncio.sleep(0)`). Live streams maintain $<50\text{ms}$ latency even during large backlog dumps.
 2. **Multi-Tier State Recovery:** If a device stays offline longer than the 1-hour Redis TTL, the backend queries TimescaleDB/PostgreSQL for the last known position and covariance matrix to restore the 9-DOF Kalman filter seamlessly.
