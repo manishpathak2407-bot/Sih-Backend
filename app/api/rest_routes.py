@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_db_session
 from app.core.auth import create_access_token
 from app.cache.redis_client import cache_manager
-from app.api.websocket import queue_mgr, active_connections
-from app.db.crud import get_trajectory_history
+from app.api.websocket import queue_mgr, active_connections, device_kalman_filters
+from app.db.crud import get_trajectory_history, get_last_known_position
 
 router = APIRouter()
 
@@ -34,6 +34,10 @@ class SensorPacketSchema(BaseModel):
     mx: Optional[float] = None
     my: Optional[float] = None
     mz: Optional[float] = None
+    mode: Optional[str] = Field(default="adaptive", description="'stationary', 'moving', or 'adaptive'")
+
+class SetModeRequest(BaseModel):
+    mode: str = Field(..., description="Operating mode: 'stationary', 'moving', or 'adaptive'")
 
 class BatchUploadRequest(BaseModel):
     device_id: str
@@ -105,4 +109,77 @@ async def get_device_trajectory(
         }
         for p in points
     ]
+
+@router.get("/device/{device_id}/state", summary="Fetch latest live position & movement state")
+async def get_device_latest_state(
+    device_id: str,
+    db: AsyncSession = Depends(get_db_session)
+):
+    """
+    Returns the current position, velocity, orientation, movement state, and step count.
+    First checks Redis cache, then falls back to the database.
+    """
+    cached = await cache_manager.get_live_device_state(device_id)
+    if cached and "x" in cached:
+        x_vec = cached["x"]
+        return {
+            "device_id": device_id,
+            "source": "redis_cache",
+            "x": round(float(x_vec[0][0]), 4),
+            "y": round(float(x_vec[1][0]), 4),
+            "z": round(float(x_vec[2][0]), 4),
+            "vx": round(float(x_vec[3][0]), 4),
+            "vy": round(float(x_vec[4][0]), 4),
+            "vz": round(float(x_vec[5][0]), 4),
+            "roll": round(float(x_vec[6][0]), 4),
+            "pitch": round(float(x_vec[7][0]), 4),
+            "yaw": round(float(x_vec[8][0]), 4),
+            "movement_state": cached.get("movement_state", "REST"),
+            "step_count": cached.get("step_count", 0),
+            "timestamp": cached.get("last_timestamp")
+        }
+
+    last_db = await get_last_known_position(db, device_id)
+    if last_db:
+        return {
+            "device_id": device_id,
+            "source": "database",
+            **last_db
+        }
+
+    return {
+        "device_id": device_id,
+        "source": "none",
+        "movement_state": "REST",
+        "step_count": 0,
+        "x": 0.0, "y": 0.0, "z": 0.0,
+        "vx": 0.0, "vy": 0.0, "vz": 0.0,
+        "roll": 0.0, "pitch": 0.0, "yaw": 0.0,
+        "message": "No trajectory points recorded yet for this device."
+    }
+
+@router.post("/device/{device_id}/mode", summary="Set operational mode for a device")
+async def set_device_mode(device_id: str, req: SetModeRequest):
+    """
+    Switches operational mode between 'stationary' (rest ZUPT), 'moving', and 'adaptive'.
+    """
+    valid_modes = {"stationary", "moving", "adaptive"}
+    mode_clean = req.mode.lower().strip()
+    if mode_clean not in valid_modes:
+        return {"error": f"Invalid mode '{req.mode}'. Choose from: {list(valid_modes)}"}
+    
+    kf = device_kalman_filters.get(device_id)
+    if kf:
+        if mode_clean == "stationary":
+            kf.movement_state = "REST"
+            kf.x[3:6, 0] = 0.0
+        elif mode_clean == "moving":
+            kf.movement_state = "MOVING"
+    
+    return {
+        "device_id": device_id,
+        "mode": mode_clean,
+        "status": "applied"
+    }
+
 

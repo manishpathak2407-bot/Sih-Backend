@@ -29,13 +29,24 @@ async def init_db():
     """Create database tables and TimescaleDB hypertables if available."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+        # Safe schema migration for movement_state & step_count
+        from sqlalchemy import text
+        try:
+            await conn.execute(text("ALTER TABLE device_trajectories ADD COLUMN movement_state VARCHAR(32) DEFAULT 'REST'"))
+        except Exception:
+            pass
+        try:
+            await conn.execute(text("ALTER TABLE device_trajectories ADD COLUMN step_count INTEGER DEFAULT 0"))
+        except Exception:
+            pass
         
         # If PostgreSQL/TimescaleDB is used, convert trajectory table to hypertable:
         if "postgresql" in settings.DATABASE_URL:
             try:
-                await conn.execute("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;")
+                await conn.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;"))
                 await conn.execute(
-                    "SELECT create_hypertable('device_trajectories', 'time', if_not_exists => TRUE);"
+                    text("SELECT create_hypertable('device_trajectories', 'time', if_not_exists => TRUE);")
                 )
                 logger.info("TimescaleDB extension and hypertable confirmed.")
             except Exception as e:
