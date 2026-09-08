@@ -1,3 +1,4 @@
+# 10Hz Dead Reckoning Backend Engine - SIH 2026
 import numpy as np
 from typing import Tuple
 
@@ -61,3 +62,4 @@ def calculate_tilt_compensated_heading(mag_body: np.ndarray, roll: float, pitch:
 
     heading = np.arctan2(-yh, xh)
     return float(heading)
+

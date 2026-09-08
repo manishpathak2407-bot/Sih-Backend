@@ -1,3 +1,4 @@
+# 10Hz Dead Reckoning Backend Engine - SIH 2026
 from datetime import datetime, timezone
 import json
 from typing import Optional, List, Dict, Any
@@ -110,3 +111,4 @@ async def get_trajectory_history(db: AsyncSession, device_id: str, limit: int = 
     )
     result = await db.execute(stmt)
     return list(result.scalars().all())
+

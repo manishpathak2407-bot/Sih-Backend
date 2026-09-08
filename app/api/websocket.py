@@ -1,3 +1,4 @@
+# 10Hz Dead Reckoning Backend Engine - SIH 2026
 import asyncio
 import json
 import logging
@@ -166,3 +167,4 @@ async def queue_worker():
             logger.error(f"Error processing item in queue worker: {e}", exc_info=True)
         finally:
             queue_mgr.task_done()
+

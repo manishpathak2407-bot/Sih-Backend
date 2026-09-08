@@ -1,3 +1,4 @@
+# 10Hz Dead Reckoning Backend Engine - SIH 2026
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 import jwt
@@ -51,3 +52,4 @@ async def authenticate_ws(websocket: WebSocket) -> Optional[str]:
         return None
 
     return str(device_id)
+

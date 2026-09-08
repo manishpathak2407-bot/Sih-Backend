@@ -1,3 +1,4 @@
+# 10Hz Dead Reckoning Backend Engine - SIH 2026
 import time
 from typing import Dict, Any
 
@@ -42,3 +43,4 @@ class TimeSyncManager:
             "rtt": max(0.0, rtt),
             "offset": offset
         }
+

@@ -1,3 +1,4 @@
+# 10Hz Dead Reckoning Backend Engine - SIH 2026
 from typing import List, Optional
 from datetime import timedelta
 from fastapi import APIRouter, Depends
@@ -102,3 +103,4 @@ async def get_device_trajectory(
         }
         for p in points
     ]
+

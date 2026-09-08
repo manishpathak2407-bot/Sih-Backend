@@ -1,3 +1,4 @@
+# 10Hz Dead Reckoning Backend Engine - SIH 2026
 from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, Index
 from app.db.database import Base
@@ -46,3 +47,4 @@ class TrajectoryPoint(Base):
         Index("idx_device_time", "device_id", "time"),
         Index("idx_device_seq", "device_id", "seq_num"),
     )
+
