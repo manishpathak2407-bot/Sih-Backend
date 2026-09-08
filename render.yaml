@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: sih-dead-reckoning-backend
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: IMU_SAMPLING_RATE_HZ
+        value: "10.0"
+      - key: BACKLOG_CHUNK_SIZE
+        value: "20"
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: sih-redis-cache
+          property: connectionString
+      - key: DATABASE_URL
+        value: sqlite+aiosqlite:///./sih_trajectories.db
+
+  - type: redis
+    name: sih-redis-cache
+    region: oregon
+    plan: free
+    ipAllowList: []
