@@ -93,12 +93,13 @@ class IMUKalmanFilter:
             current_time = self.last_timestamp or 0.0
             # Check for walking step peak (at least 0.35s between steps = max 2.8 steps/s)
             is_step_peak = (accel_mag - GRAVITY) > 0.35 and (current_time - self._last_step_time) > 0.35
+            cadence_step = (mode == "moving") and ((current_time - self._last_step_time) >= 0.55)
             
-            if is_step_peak or mode == "moving":
-                if is_step_peak:
-                    self.step_count += 1
-                    self._last_step_time = current_time
+            if is_step_peak or cadence_step:
+                self.step_count += 1
+                self._last_step_time = current_time
 
+            if is_step_peak or mode == "moving":
                 # Walking velocity along current heading
                 speed = 1.15  # ~1.15 m/s typical walking speed
                 self.x[3, 0] = speed * np.cos(yaw)  # Vx (East)

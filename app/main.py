@@ -335,13 +335,25 @@ DASHBOARD_HTML = """
             };
         }
 
+        let isPhoneStreaming = false;
+        let sensorHandler = null;
+        let orientationHandler = null;
+        let lastSensorData = { ax: 0, ay: 0, az: 9.81, gx: 0, gy: 0, gz: 0, mx: 22.0, my: -5.0, mz: 41.0 };
+
         function updateButtonStyles(active) {
             document.getElementById("btn-mode-1").className = "mode-btn" + (active === "stationary" ? " active-stationary" : "");
             document.getElementById("btn-mode-2").className = "mode-btn" + (active === "moving" ? " active-moving" : "");
             document.getElementById("btn-mode-3").className = "mode-btn" + (active === "adaptive" ? " active-adaptive" : "");
+            const phoneBtn = document.getElementById("btn-mode-phone");
+            if (phoneBtn) {
+                phoneBtn.className = "mode-btn" + (isPhoneStreaming ? " active-moving" : "");
+            }
         }
 
         async function setMode(mode) {
+            if (isPhoneStreaming) {
+                togglePhoneSensors(); // stop phone sensors if active
+            }
             if (currentMode === mode) {
                 // Toggle off
                 if (streamInterval) clearInterval(streamInterval);
@@ -447,6 +459,96 @@ DASHBOARD_HTML = """
             document.getElementById("coord-hud").textContent = "(0.00m, 0.00m)";
             drawCanvas();
             log("Canvas reset.");
+        }
+
+        async function togglePhoneSensors() {
+            const btn = document.getElementById("btn-mode-phone");
+            if (isPhoneStreaming) {
+                isPhoneStreaming = false;
+                if (streamInterval) clearInterval(streamInterval);
+                streamInterval = null;
+                if (sensorHandler) window.removeEventListener("devicemotion", sensorHandler);
+                if (orientationHandler) window.removeEventListener("deviceorientation", orientationHandler);
+                btn.className = "mode-btn";
+                log("Stopped Live Phone Hardware IMU Stream.", "log-warn");
+                return;
+            }
+
+            if (currentMode) {
+                currentMode = null;
+                updateButtonStyles(null);
+            }
+            if (streamInterval) clearInterval(streamInterval);
+
+            if (!window.DeviceMotionEvent) {
+                alert("DeviceMotionEvent is not supported on this device/browser.");
+                log("DeviceMotionEvent not supported on this browser.", "log-warn");
+                return;
+            }
+
+            if (typeof DeviceMotionEvent.requestPermission === "function") {
+                try {
+                    const permission = await DeviceMotionEvent.requestPermission();
+                    if (permission !== "granted") {
+                        alert("Sensor motion permission denied.");
+                        log("Sensor motion permission denied by user.", "log-warn");
+                        return;
+                    }
+                } catch (err) {
+                    log("Permission notice: " + err.message, "log-info");
+                }
+            }
+
+            await connectWebSocket();
+            isPhoneStreaming = true;
+            btn.className = "mode-btn active-adaptive";
+            log(">>> LIVE HARDWARE IMU ACTIVE: Streaming physical accelerometer & gyro at 10Hz...", "log-ok");
+
+            sensorHandler = (event) => {
+                const acc = event.accelerationIncludingGravity || event.acceleration;
+                if (acc) {
+                    lastSensorData.ax = acc.x || 0;
+                    lastSensorData.ay = acc.y || 0;
+                    lastSensorData.az = acc.z !== null && acc.z !== undefined ? acc.z : 9.81;
+                }
+                const rot = event.rotationRate;
+                if (rot) {
+                    lastSensorData.gx = (rot.beta || 0) * (Math.PI / 180);
+                    lastSensorData.gy = (rot.gamma || 0) * (Math.PI / 180);
+                    lastSensorData.gz = (rot.alpha || 0) * (Math.PI / 180);
+                }
+            };
+
+            orientationHandler = (event) => {
+                if (event.alpha !== null && event.alpha !== undefined) {
+                    const headingRad = (event.alpha || 0) * (Math.PI / 180);
+                    lastSensorData.mx = 25.0 * Math.cos(headingRad);
+                    lastSensorData.my = 25.0 * Math.sin(headingRad);
+                }
+            };
+
+            window.addEventListener("devicemotion", sensorHandler);
+            window.addEventListener("deviceorientation", orientationHandler);
+
+            streamInterval = setInterval(() => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        type: "live",
+                        mode: "adaptive",
+                        seq: seq++,
+                        timestamp: Date.now() / 1000,
+                        ax: Number(lastSensorData.ax.toFixed(4)),
+                        ay: Number(lastSensorData.ay.toFixed(4)),
+                        az: Number(lastSensorData.az.toFixed(4)),
+                        gx: Number(lastSensorData.gx.toFixed(4)),
+                        gy: Number(lastSensorData.gy.toFixed(4)),
+                        gz: Number(lastSensorData.gz.toFixed(4)),
+                        mx: Number(lastSensorData.mx.toFixed(2)),
+                        my: Number(lastSensorData.my.toFixed(2)),
+                        mz: Number(lastSensorData.mz.toFixed(2))
+                    }));
+                }
+            }, 100);
         }
 
         drawCanvas();
