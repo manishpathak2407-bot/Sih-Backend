@@ -98,7 +98,7 @@ async def save_trajectory_batch(db: AsyncSession, points_data: List[Dict[str, An
                 yaw=p.get("yaw", 0.0),
                 movement_state=p.get("movement_state", "REST"),
                 step_count=p.get("step_count", 0),
-                is_backlog=True,
+                is_backlog=p.get("is_backlog", False),
                 is_verified=p.get("is_verified", True),
                 covariance_json=json.dumps(p.get("covariance")) if p.get("covariance") else None,
             )

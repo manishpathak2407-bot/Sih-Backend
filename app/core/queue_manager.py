@@ -15,11 +15,16 @@ class IngestionItem:
     Priority Queue Item:
     Priority 0: Real-time Live frame (Low latency, high priority)
     Priority 1: Backlog recovery chunks (Processed when live queue is quiet)
+
+    Ordering:
+    1. priority (0 before 1)
+    2. timestamp (FIFO chronologically across all concurrent devices)
+    3. seq_num (chronological within each device)
     """
     priority: int
+    timestamp: float
     seq_num: int
     device_id: str = field(compare=False)
-    timestamp: float = field(compare=False)
     data: Dict[str, Any] = field(compare=False)
     is_backlog: bool = field(compare=False, default=False)
 
@@ -41,9 +46,9 @@ class IngestionQueueManager:
         ts = packet.get("timestamp", 0.0)
         item = IngestionItem(
             priority=0,
+            timestamp=ts,
             seq_num=seq,
             device_id=device_id,
-            timestamp=ts,
             data=packet,
             is_backlog=False
         )
@@ -72,9 +77,9 @@ class IngestionQueueManager:
                 ts = packet.get("timestamp", 0.0)
                 item = IngestionItem(
                     priority=1,
+                    timestamp=ts,
                     seq_num=seq,
                     device_id=device_id,
-                    timestamp=ts,
                     data=packet,
                     is_backlog=True
                 )

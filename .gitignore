@@ -48,5 +48,7 @@ sih_trajectories.db
 Thumbs.db
 Desktop.ini
 desktop.ini
+*.crdownload
+*.tmp
 
 # 10Hz Dead Reckoning Sync

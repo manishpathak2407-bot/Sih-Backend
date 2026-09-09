@@ -127,6 +127,7 @@ class IMUKalmanFilter:
         F = np.eye(9)
         F[0:3, 3:6] = np.eye(3) * dt
         self.P = F @ self.P @ F.T + self.Q
+        self.P = 0.5 * (self.P + self.P.T)  # Enforce numerical symmetry
 
     def update_magnetometer(self, mag_body: np.ndarray):
         """Measurement update using tilt-compensated compass heading."""
@@ -145,6 +146,7 @@ class IMUKalmanFilter:
 
         self.x = self.x + K @ y
         self.P = (np.eye(9) - K @ H) @ self.P
+        self.P = 0.5 * (self.P + self.P.T)  # Enforce numerical symmetry
 
     def process_sample(self, packet: Dict[str, Any]) -> Dict[str, Any]:
         """

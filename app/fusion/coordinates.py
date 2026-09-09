@@ -6,37 +6,21 @@ GRAVITY = 9.80665
 
 def euler_to_rotation_matrix(roll: float, pitch: float, yaw: float) -> np.ndarray:
     """
-    Computes 3x3 Rotation matrix R from body frame to navigation frame (NED: North-East-Down).
+    Computes 3x3 Direction Cosine Matrix (DCM) from body frame to navigation frame.
+    Uses direct closed-form Z-Y-X (yaw-pitch-roll) formulation for optimal 10Hz throughput.
     roll (phi): rotation about X
     pitch (theta): rotation about Y
     yaw (psi): rotation about Z
     """
-    cr = np.cos(roll)
-    sr = np.sin(roll)
-    cp = np.cos(pitch)
-    sp = np.sin(pitch)
-    cy = np.cos(yaw)
-    sy = np.sin(yaw)
+    cr, sr = np.cos(roll), np.sin(roll)
+    cp, sp = np.cos(pitch), np.sin(pitch)
+    cy, sy = np.cos(yaw), np.sin(yaw)
 
-    R_x = np.array([
-        [1, 0, 0],
-        [0, cr, -sr],
-        [0, sr, cr]
-    ])
-
-    R_y = np.array([
-        [cp, 0, sp],
-        [0, 1, 0],
-        [-sp, 0, cp]
-    ])
-
-    R_z = np.array([
-        [cy, -sy, 0],
-        [sy, cy, 0],
-        [0, 0, 1]
-    ])
-
-    return R_z @ R_y @ R_x
+    return np.array([
+        [cy * cp,  cy * sp * sr - sy * cr,  cy * sp * cr + sy * sr],
+        [sy * cp,  sy * sp * sr + cy * cr,  sy * sp * cr - cy * sr],
+        [-sp,      cp * sr,                 cp * cr]
+    ], dtype=np.float64)
 
 def body_to_nav_acceleration(accel_body: np.ndarray, roll: float, pitch: float, yaw: float) -> np.ndarray:
     """

@@ -163,12 +163,20 @@ async def queue_worker():
             state_dict = kf.to_state_dict()
             await cache_manager.set_live_device_state(device_id, state_dict)
 
-            # 5. Asynchronously persist to database
-            async with AsyncSessionLocal() as session:
-                await save_trajectory_point(session, payload_out)
+            # 5. Non-blocking asynchronous persistence to database (prevents I/O lag on 10Hz stream)
+            asyncio.create_task(_persist_point(payload_out))
 
         except Exception as e:
             logger.error(f"Error processing item in queue worker: {e}", exc_info=True)
         finally:
             queue_mgr.task_done()
+
+async def _persist_point(payload: Dict[str, Any]):
+    """Background task for async persistence without stalling real-time 10Hz stream."""
+    try:
+        async with AsyncSessionLocal() as session:
+            await save_trajectory_point(session, payload)
+    except Exception as e:
+        logger.error(f"Error persisting point for {payload.get('device_id')}: {e}")
+
 
