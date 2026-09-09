@@ -45,8 +45,24 @@ async def init_db():
         if "postgresql" in settings.DATABASE_URL:
             try:
                 await conn.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;"))
+                # TimescaleDB requires primary key to include the partition column 'time':
+                await conn.execute(text("""
+                    DO $$
+                    BEGIN
+                        IF EXISTS (
+                            SELECT 1 FROM pg_constraint 
+                            WHERE conrelid = 'device_trajectories'::regclass 
+                            AND contype = 'p'
+                        ) THEN
+                            ALTER TABLE device_trajectories DROP CONSTRAINT device_trajectories_pkey CASCADE;
+                            ALTER TABLE device_trajectories ADD PRIMARY KEY (id, time);
+                        END IF;
+                    EXCEPTION WHEN OTHERS THEN
+                        NULL;
+                    END $$;
+                """))
                 await conn.execute(
-                    text("SELECT create_hypertable('device_trajectories', 'time', if_not_exists => TRUE);")
+                    text("SELECT create_hypertable('device_trajectories', 'time', if_not_exists => TRUE, migrate_data => TRUE);")
                 )
                 logger.info("TimescaleDB extension and hypertable confirmed.")
             except Exception as e:

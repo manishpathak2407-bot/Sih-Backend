@@ -193,6 +193,12 @@ DASHBOARD_HTML = """
                         <div style="font-size:0.95rem; color:#bc8cff;">💾 Mode 3: Adaptive State Storage Mode</div>
                         <div style="font-size:0.75rem; color:#8b949e; margin-top:2px;">Auto-detects REST vs MOVING & continuously persists latest position & state in DB.</div>
                     </button>
+
+                    <!-- LIVE PHYSICAL SENSORS (PHONE / LAPTOP) -->
+                    <button id="btn-mode-phone" class="mode-btn" onclick="togglePhoneSensors()">
+                        <div style="font-size:0.95rem; color:#58a6ff;">📱 Live Hardware IMU Stream (Phone / Laptop)</div>
+                        <div style="font-size:0.75rem; color:#8b949e; margin-top:2px;">Reads actual physical accelerometer & gyro in real-time (walk around holding your phone).</div>
+                    </button>
                 </div>
 
                 <div style="display:flex; gap:10px; margin-top:14px;">

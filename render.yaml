@@ -3,9 +3,9 @@ services:
     name: sih-dead-reckoning-backend
     runtime: python
     region: oregon
-    plan: free
+    plan: starter
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --ws websockets
     envVars:
       - key: SECRET_KEY
         generateValue: true
@@ -15,16 +15,19 @@ services:
         value: "10.0"
       - key: BACKLOG_CHUNK_SIZE
         value: "20"
+      - key: MAX_QUEUE_SIZE
+        value: "50000"
       - key: REDIS_URL
-        fromService:
-          type: redis
-          name: sih-redis-cache
-          property: connectionString
+        value: "redis://localhost:6379/0" # Falls back to internal LRU if omitted
       - key: DATABASE_URL
-        value: sqlite+aiosqlite:///./sih_trajectories.db
+        fromDatabase:
+          name: sih-timescaledb-postgres
+          property: connectionString
 
-  - type: redis
-    name: sih-redis-cache
+databases:
+  - name: sih-timescaledb-postgres
+    plan: starter
     region: oregon
-    plan: free
-    ipAllowList: []
+    databaseName: sih_db
+    user: postgres
+
