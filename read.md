@@ -127,14 +127,25 @@ The backend provides three operational modes to eliminate drift and preserve coo
 
 ---
 
-## 5. Running the Backend
+## 6. Running the Backend
 
-### Local Python Run:
+### Windows (1-Click Run):
+Double-click `run_windows.bat` or run:
+```cmd
+run_windows.bat
+```
+
+### Local Python Run (Cross-Platform):
 ```powershell
 pip install -r requirements.txt
 python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 *(Automatically falls back to SQLite and in-memory LRU cache if Redis/Postgres are not installed).*
+
+### Run Test Suite:
+```powershell
+python -m unittest tests/test_backend.py
+```
 
 ### Production VPS / Cloud VM Deployment (AWS, DigitalOcean, Azure):
 On your remote Ubuntu/Debian server, run:
@@ -146,7 +157,8 @@ chmod +x deploy.sh
 ```
 *This automatically configures Docker, launches the FastAPI backend, Redis cache, and TimescaleDB containers, and verifies the health endpoint.*
 
-### Integration Test:
+### Live Simulation Integration Test:
 ```powershell
 python tests/simulate_device.py
 ```
+

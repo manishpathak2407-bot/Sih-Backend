@@ -122,18 +122,27 @@ async def get_device_latest_state(
     cached = await cache_manager.get_live_device_state(device_id)
     if cached and "x" in cached:
         x_vec = cached["x"]
+        def _get_val(idx: int) -> float:
+            try:
+                elem = x_vec[idx]
+                if isinstance(elem, (list, tuple)):
+                    return float(elem[0])
+                return float(elem)
+            except (IndexError, TypeError, ValueError):
+                return 0.0
+
         return {
             "device_id": device_id,
             "source": "redis_cache",
-            "x": round(float(x_vec[0][0]), 4),
-            "y": round(float(x_vec[1][0]), 4),
-            "z": round(float(x_vec[2][0]), 4),
-            "vx": round(float(x_vec[3][0]), 4),
-            "vy": round(float(x_vec[4][0]), 4),
-            "vz": round(float(x_vec[5][0]), 4),
-            "roll": round(float(x_vec[6][0]), 4),
-            "pitch": round(float(x_vec[7][0]), 4),
-            "yaw": round(float(x_vec[8][0]), 4),
+            "x": round(_get_val(0), 4),
+            "y": round(_get_val(1), 4),
+            "z": round(_get_val(2), 4),
+            "vx": round(_get_val(3), 4),
+            "vy": round(_get_val(4), 4),
+            "vz": round(_get_val(5), 4),
+            "roll": round(_get_val(6), 4),
+            "pitch": round(_get_val(7), 4),
+            "yaw": round(_get_val(8), 4),
             "movement_state": cached.get("movement_state", "REST"),
             "step_count": cached.get("step_count", 0),
             "timestamp": cached.get("last_timestamp")

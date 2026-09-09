@@ -13,7 +13,7 @@
 | **Direct Browser Testing Page** | Main interactive 10Hz visualizer with 3-Mode Controller (Stationary, Moving, Adaptive) | **[http://localhost:8000/](http://localhost:8000/)** |
 | **Alternative Localhost IP** | Fallback loopback address for the testing dashboard | **[http://127.0.0.1:8000/](http://127.0.0.1:8000/)** |
 | **Dashboard Explicit Route** | Direct route alias to the HTML5 canvas visualizer | **[http://localhost:8000/dashboard](http://localhost:8000/dashboard)** |
-| **Mobile / Smartphone Stream** | Open on phone connected to same Wi-Fi to stream physical hardware accelerometer & gyroscope | **[http://10.202.97.132:8000/](http://10.202.97.132:8000/)** |
+| **Local Network / Mobile Stream** | Open on mobile or collaborator laptop on same network (replace `<HOST_IP>` via `ipconfig`) | `http://<HOST_IP>:8000/` |
 
 ---
 
@@ -44,7 +44,7 @@
 | Protocol | Path | Usage |
 | :--- | :--- | :--- |
 | **Local WebSocket** | `ws://localhost:8000/ws/track/{device_id}?token=<jwt>` | 10Hz live sensor streaming & coordinate feedback |
-| **Mobile Wi-Fi WebSocket** | `ws://10.202.97.132:8000/ws/track/{device_id}?token=<jwt>` | Connect smartphone apps / Flutter to your laptop server |
+| **Local Network / Wi-Fi WebSocket** | `ws://<HOST_IP>:8000/ws/track/{device_id}?token=<jwt>` | Connect smartphone apps / Flutter to your host machine |
 | **Cloud Production WSS** | `wss://<YOUR_DOMAIN>/ws/track/{device_id}?token=<jwt>` | Encrypted production WebSocket over SSL / Let's Encrypt |
 
 ---

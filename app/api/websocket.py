@@ -171,11 +171,14 @@ async def queue_worker():
         finally:
             queue_mgr.task_done()
 
+_db_write_lock = asyncio.Lock()
+
 async def _persist_point(payload: Dict[str, Any]):
     """Background task for async persistence without stalling real-time 10Hz stream."""
     try:
-        async with AsyncSessionLocal() as session:
-            await save_trajectory_point(session, payload)
+        async with _db_write_lock:
+            async with AsyncSessionLocal() as session:
+                await save_trajectory_point(session, payload)
     except Exception as e:
         logger.error(f"Error persisting point for {payload.get('device_id')}: {e}")
 

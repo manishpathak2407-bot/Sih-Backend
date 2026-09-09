@@ -22,6 +22,8 @@ class IMUKalmanFilter:
         # 9x1 State Vector: [px, py, pz, vx, vy, vz, roll, pitch, yaw]^T
         if initial_state is not None:
             self.x = initial_state.astype(np.float64)
+            if self.x.ndim == 1:
+                self.x = self.x.reshape((9, 1))
         else:
             self.x = np.zeros((9, 1), dtype=np.float64)
 
@@ -77,6 +79,7 @@ class IMUKalmanFilter:
         # Calculate dynamic acceleration variance
         accel_var = float(np.var(self._accel_history)) if len(self._accel_history) >= 4 else 0.0
 
+        mode = str(mode).lower().strip()
         # Mode Determination:
         if mode == "stationary":
             is_moving = False
@@ -128,6 +131,7 @@ class IMUKalmanFilter:
         F[0:3, 3:6] = np.eye(3) * dt
         self.P = F @ self.P @ F.T + self.Q
         self.P = 0.5 * (self.P + self.P.T)  # Enforce numerical symmetry
+        np.fill_diagonal(self.P, np.maximum(np.diag(self.P), 1e-6))
 
     def update_magnetometer(self, mag_body: np.ndarray):
         """Measurement update using tilt-compensated compass heading."""
@@ -147,6 +151,7 @@ class IMUKalmanFilter:
         self.x = self.x + K @ y
         self.P = (np.eye(9) - K @ H) @ self.P
         self.P = 0.5 * (self.P + self.P.T)  # Enforce numerical symmetry
+        np.fill_diagonal(self.P, np.maximum(np.diag(self.P), 1e-6))
 
     def process_sample(self, packet: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -157,7 +162,7 @@ class IMUKalmanFilter:
         dt = max(0.01, min(1.0, dt))
         self.last_timestamp = current_ts
 
-        mode = packet.get("mode", "adaptive")
+        mode = str(packet.get("mode", "adaptive")).lower().strip()
 
         accel = np.array([packet.get("ax", 0.0), packet.get("ay", 0.0), packet.get("az", 0.0)])
         gyro = np.array([packet.get("gx", 0.0), packet.get("gy", 0.0), packet.get("gz", 0.0)])

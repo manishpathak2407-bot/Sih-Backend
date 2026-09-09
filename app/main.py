@@ -1,4 +1,8 @@
 # 10Hz Dead Reckoning Backend Engine - SIH 2026
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import asyncio
 import logging
 from contextlib import asynccontextmanager
