@@ -17,7 +17,17 @@
 
 ---
 
-## 2. API & Documentation Links
+## 2. SIH 2026 Presentation & Pitch Deck
+
+| Resource | Format | Description | File / Link |
+| :--- | :---: | :--- | :--- |
+| **Official 6-Slide PowerPoint** | `.pptx` | Fully designed 16:9 widescreen presentation deck following SIH winners pattern | **[ppt.pptx](ppt.pptx)** / **[ppt/ppt.pptx](ppt/ppt.pptx)** |
+| **Official Submission PDF** | `.pdf` | Exported official PDF submission format (strict 6 slides, <10MB) | **[ppt.pdf](ppt.pdf)** / **[ppt/ppt.pdf](ppt/ppt.pdf)** |
+| **Presentation Transcript & Notes** | `.md` | Complete slide-by-slide script, mathematical derivations & evaluator notes | **[PPT.md](PPT.md)** / **[ppt/README.md](ppt/README.md)** |
+
+---
+
+## 3. API & Documentation Links
 
 | Resource | Purpose | URL Link |
 | :--- | :--- | :--- |

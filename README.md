@@ -1,6 +1,11 @@
 # Dead Reckoning Backend Engine (10Hz)
 **High-Concurrency FastAPI Ingestion, Priority Queues, Redis Caching & TimescaleDB Persistence**  
-*Latest Sync: September 8, 2026 | 10Hz Pure Dead Reckoning Service*
+*Latest Sync: September 10, 2026 | 10Hz Pure Dead Reckoning Service*
+
+> 🏆 **Smart India Hackathon (SIH 2026) Official 6-Slide Presentation:**  
+> - **PowerPoint Presentation:** [ppt.pptx](ppt.pptx) or [ppt/ppt.pptx](ppt/ppt.pptx)  
+> - **Submission PDF:** [ppt.pdf](ppt.pdf) or [ppt/ppt.pdf](ppt/ppt.pdf)  
+> - **Slide Breakdown & Transcript:** [PPT.md](PPT.md) | [ppt/README.md](ppt/README.md)
 
 ---
 

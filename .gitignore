@@ -49,6 +49,8 @@ Thumbs.db
 Desktop.ini
 desktop.ini
 *.crdownload
-*.tmp
+# Local spreadsheets and temporary downloads
+*.xlsx
 
 # 10Hz Dead Reckoning Sync
+
