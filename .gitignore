@@ -54,3 +54,10 @@ desktop.ini
 
 # 10Hz Dead Reckoning Sync
 
+# AWS Amplify (see AMPLIFY_MIGRATION.md) - Node/CDK backend tooling
+node_modules/
+.amplify/
+cdk.out/
+amplify_outputs*
+amplifyconfiguration*
+

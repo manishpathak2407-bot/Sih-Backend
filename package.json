@@ -1,0 +1,21 @@
+{
+  "name": "sih-backend",
+  "version": "1.0.0",
+  "description": "SIH 2026 10Hz Dead Reckoning Backend - AWS Amplify serverless deployment (see AMPLIFY_MIGRATION.md)",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "sandbox": "ampx sandbox",
+    "deploy": "ampx pipeline-deploy --branch main --app-id $AMPLIFY_APP_ID"
+  },
+  "devDependencies": {
+    "@aws-amplify/backend": "^1.24.1",
+    "@aws-amplify/backend-cli": "^1.9.1",
+    "@types/node": "^22.20.2",
+    "aws-cdk-lib": "^2.267.0",
+    "constructs": "^10.8.1",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.3"
+  }
+}
