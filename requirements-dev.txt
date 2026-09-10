@@ -1,0 +1,5 @@
+# 10Hz Dead Reckoning Backend Engine - SIH 2026
+# Dev/test-only dependencies, on top of requirements.txt and lambdas/requirements.txt.
+-r requirements.txt
+-r lambdas/requirements.txt
+moto[dynamodb]>=5.0.0

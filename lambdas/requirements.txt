@@ -1,0 +1,14 @@
+# 10Hz Dead Reckoning Backend Engine - SIH 2026
+# Runtime dependencies for lambdas/ (the AWS Amplify / Lambda deployment
+# target). Kept separate from the root requirements.txt, which is for the
+# legacy FastAPI/uvicorn local-dev harness under app/ (see AMPLIFY_MIGRATION.md).
+#
+# boto3 ships preinstalled in the AWS Lambda Python runtime, so it does not
+# strictly need to be bundled into the deployment package — it's pinned here
+# for local development/testing so the version matches what's exercised in
+# tests/unit.
+boto3>=1.34.0
+pyjwt>=2.8.0
+numpy>=1.26.0
+scipy>=1.12.0
+filterpy>=1.4.5
