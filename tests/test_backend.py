@@ -95,6 +95,10 @@ class TestKinematicsAndFusion(unittest.TestCase):
         kf.x[1, 0] = 56.78
         kf.movement_state = "MOVING"
         kf.step_count = 42
+        # Populate the rolling accel-history window and last-step timestamp so the
+        # round-trip test actually exercises them, not just the zero/default case.
+        kf._accel_history.extend([9.81, 9.90, 10.20, 9.75, 10.05])
+        kf._last_step_time = 123.456
 
         state = kf.to_state_dict()
         restored = IMUKalmanFilter.from_state_dict(state)
@@ -103,6 +107,26 @@ class TestKinematicsAndFusion(unittest.TestCase):
         self.assertAlmostEqual(float(restored.x[1, 0]), 56.78, places=4)
         self.assertEqual(restored.movement_state, "MOVING")
         self.assertEqual(restored.step_count, 42)
+        # Regression test: accel_history/last_step_time must survive a state-dict
+        # round-trip. Before this fix they were silently dropped, which would zero
+        # out adaptive movement-state detection and step-cadence logic on every
+        # restore (a correctness bug that gets far worse under a Lambda-per-packet
+        # model where every single message is a fresh restore from serialized state).
+        self.assertEqual(list(restored._accel_history), [9.81, 9.90, 10.20, 9.75, 10.05])
+        self.assertEqual(restored._last_step_time, 123.456)
+
+    def test_kalman_filter_serialization_defaults_when_fields_missing(self):
+        """A state dict from before this fix (or any external store missing the
+        new keys) must still restore cleanly with safe defaults, not KeyError."""
+        kf = IMUKalmanFilter()
+        state = kf.to_state_dict()
+        del state["accel_history"]
+        del state["last_step_time"]
+
+        restored = IMUKalmanFilter.from_state_dict(state)
+
+        self.assertEqual(list(restored._accel_history), [])
+        self.assertEqual(restored._last_step_time, 0.0)
 
 
 class TestAuthentication(unittest.TestCase):

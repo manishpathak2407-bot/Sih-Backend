@@ -2,6 +2,7 @@
 import asyncio
 import json
 import logging
+import numpy as np
 from typing import Dict, Any, Optional
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 from app.core.auth import authenticate_ws
@@ -36,7 +37,12 @@ async def restore_or_init_filter(device_id: str) -> IMUKalmanFilter:
         last_pos = await get_last_known_position(session, device_id)
         if last_pos:
             logger.info(f"Restored Kalman filter for {device_id} from TimescaleDB (Redis TTL had expired).")
-            kf = IMUKalmanFilter()
+            # Restore the saved covariance matrix if present, instead of silently
+            # falling back to the default P = eye(9)*0.1 initial-uncertainty guess.
+            covariance = last_pos.get("covariance")
+            kf = IMUKalmanFilter(
+                initial_covariance=np.array(covariance) if covariance else None
+            )
             kf.x[0, 0] = last_pos["x"]
             kf.x[1, 0] = last_pos["y"]
             kf.x[2, 0] = last_pos["z"]
