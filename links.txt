@@ -1,14 +1,1 @@
-SkyReady Tactical C2 Web Dashboard:
 http://localhost:8000/
-
-Alternative Loopback Address:
-http://127.0.0.1:8000/
-
-Interactive API Documentation (Swagger UI):
-http://localhost:8000/docs
-
-ReDoc API Reference:
-http://localhost:8000/redoc
-
-GitHub Repository:
-https://github.com/manishpathak2407-bot/SkyReady

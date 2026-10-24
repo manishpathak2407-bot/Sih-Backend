@@ -12,98 +12,110 @@
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap');
-    body { font-family: 'Inter', sans-serif; }
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #ffffff;
+      color: #0f172a;
+    }
     .font-mono { font-family: 'JetBrains Mono', monospace; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #070b14; }
-    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #334155; }
-    .pulse-glow { box-shadow: 0 0 15px rgba(6, 182, 212, 0.35); }
-    .scanline {
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-      background-size: 100% 2px, 3px 100%;
-      pointer-events: none;
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    
+    /* Airplane Watermark Background */
+    .aircraft-bg {
+      background-color: #ffffff;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 1200' width='1000' height='1200'%3E%3Cg fill='none' stroke='%230284c7' stroke-width='1.5' opacity='0.08'%3E%3Cpath d='M500 40 L515 180 L530 330 L545 480 L550 680 L540 830 L530 960 L520 1030 L500 1060 L480 1030 L470 960 L460 830 L450 680 L455 480 L470 330 L485 180 Z' /%3E%3Cellipse cx='500' cy='300' rx='20' ry='75' stroke='%230284c7' stroke-width='2' /%3E%3Cpath d='M500 225 L500 375' /%3E%3Cpath d='M500 40 L500 225' stroke-width='2' /%3E%3Cpath d='M470 400 L210 700 L140 740 L130 800 L450 800' /%3E%3Cpath d='M530 400 L790 700 L860 740 L870 800 L550 800' /%3E%3Cpath d='M210 700 L455 700' stroke-dasharray='8 6' /%3E%3Cpath d='M790 700 L545 700' stroke-dasharray='8 6' /%3E%3Cpath d='M290 600 L460 600' /%3E%3Cpath d='M710 600 L540 600' /%3E%3Crect x='125' y='720' width='10' height='90' rx='3' /%3E%3Crect x='865' y='720' width='10' height='90' rx='3' /%3E%3Crect x='460' y='830' width='35' height='170' rx='6' /%3E%3Crect x='505' y='830' width='35' height='170' rx='6' /%3E%3Cellipse cx='477' cy='1005' rx='16' ry='12' /%3E%3Cellipse cx='523' cy='1005' rx='16' ry='12' /%3E%3Cpath d='M430 820 L370 960 L380 1000 L455 960' /%3E%3Cpath d='M570 820 L630 960 L620 1000 L545 960' /%3E%3Cpath d='M440 960 L310 1020 L330 1060 L460 1030' /%3E%3Cpath d='M560 960 L690 1020 L670 1060 L540 1030' /%3E%3Cpath d='M485 340 C 470 400, 350 460, 470 520' /%3E%3Cpath d='M515 340 C 530 400, 650 460, 530 520' /%3E%3Ccircle cx='500' cy='520' r='330' stroke-dasharray='6 6' /%3E%3Ccircle cx='500' cy='520' r='180' stroke-dasharray='4 4' /%3E%3Cline x1='140' y1='520' x2='860' y2='520' stroke-dasharray='10 10' /%3E%3Cline x1='500' y1='180' x2='500' y2='860' stroke-dasharray='10 10' /%3E%3C/g%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center 140px;
+      background-size: 820px auto;
+      background-attachment: fixed;
     }
   </style>
 </head>
-<body class="bg-[#070b14] text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500/30 selection:text-cyan-200">
+<body class="aircraft-bg min-h-screen flex flex-col selection:bg-blue-500/20 selection:text-blue-900">
   
   <!-- Top Command & Tactical Header -->
-  <header class="border-b border-slate-800 bg-[#0b1120]/95 backdrop-blur sticky top-0 z-50">
+  <header class="border-b border-slate-200 bg-white/95 backdrop-blur sticky top-0 z-50 shadow-xs">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <!-- Logo & Squadron Title -->
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-slate-950 font-black text-xl">
-            ⚡
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-md shadow-blue-500/20 text-white font-black text-xl">
+            ✈️
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="text-lg font-black tracking-wider text-white">SKYREADY</span>
-              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-bold">
+              <span class="text-lg font-black tracking-wider text-slate-900">SKYREADY</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 font-bold">
                 SIH26249 • MoD / DSSC
               </span>
             </div>
-            <div class="text-xs text-slate-400 font-mono flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block"></span>
-              <span>No. 45 Flying Daggers (24 Aircraft)</span>
-              <span class="text-slate-600">•</span>
-              <span class="text-cyan-400">Team ZEN / KILLSWITCHX</span>
+            <div class="text-xs text-slate-500 font-mono flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping inline-block"></span>
+              <span>No. 45 Flying Daggers (24 Multirole Fighters)</span>
+              <span class="text-slate-300">•</span>
+              <span class="text-blue-700 font-semibold">Team ZEN</span>
             </div>
           </div>
         </div>
 
         <!-- Top Right Stats & Actions -->
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
           <!-- Readiness Gauge Chip -->
-          <div class="hidden md:flex items-center gap-3 bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-lg">
+          <div class="hidden md:flex items-center gap-3 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg shadow-xs">
             <div class="text-right">
-              <div class="text-[10px] font-mono uppercase text-slate-400">Fleet Availability</div>
-              <div class="text-sm font-black text-emerald-400 font-mono" id="headerAvailRate">86.8% <span class="text-[10px] font-normal text-slate-400">(+15.4 pt)</span></div>
+              <div class="text-[10px] font-mono uppercase text-slate-500 font-semibold">Fleet Availability</div>
+              <div class="text-sm font-black text-emerald-600 font-mono" id="headerAvailRate">86.8% <span class="text-[10px] font-normal text-slate-500">(+15.4 pt)</span></div>
             </div>
-            <div class="w-8 h-8 rounded-full border-2 border-emerald-400 flex items-center justify-center font-mono text-[10px] font-bold text-emerald-400">
+            <div class="w-8 h-8 rounded-full border-2 border-emerald-500 bg-emerald-50 flex items-center justify-center font-mono text-[10px] font-bold text-emerald-700">
               87%
             </div>
           </div>
 
-          <a href="/docs" target="_blank" class="px-3 py-1.5 text-xs font-mono font-semibold rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white border border-slate-700 transition flex items-center gap-1.5">
-            <i data-lucide="file-code" class="w-3.5 h-3.5"></i>
-            <span>Swagger API</span>
-          </a>
+          <button onclick="switchTab('docs')" class="px-3 py-1.5 text-xs font-mono font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 transition flex items-center gap-1.5 shadow-xs">
+            <i data-lucide="file-code" class="w-3.5 h-3.5 text-blue-600"></i>
+            <span>Integrated API</span>
+          </button>
 
-          <button onclick="triggerOptimization()" class="px-3.5 py-1.5 text-xs font-mono font-bold rounded-lg bg-cyan-500 text-slate-950 hover:bg-cyan-400 transition flex items-center gap-1.5 shadow-md shadow-cyan-500/20" id="btnQuickSolve">
+          <button onclick="triggerOptimization()" class="px-3.5 py-1.5 text-xs font-mono font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex items-center gap-1.5 shadow-sm shadow-blue-600/20" id="btnQuickSolve">
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5" id="solveSpinIcon"></i>
             <span>Run CP-SAT</span>
           </button>
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
-      <nav class="flex space-x-1 sm:space-x-3 overflow-x-auto py-2 border-t border-slate-800/80 text-xs font-mono scrollbar-none">
-        <button onclick="switchTab('command')" id="tab-command" class="tab-btn px-3 py-1.5 rounded-md transition-all flex items-center gap-2 bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+      <!-- Navigation Tabs (All Interconnected on this Single Website) -->
+      <nav class="flex space-x-1 sm:space-x-2 overflow-x-auto py-2 border-t border-slate-100 text-xs font-mono scrollbar-none">
+        <button onclick="switchTab('command')" id="tab-command" class="tab-btn px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200 font-bold shadow-xs">
           <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
           <span>1. Fleet Command</span>
         </button>
-        <button onclick="switchTab('digital-twin')" id="tab-digital-twin" class="tab-btn px-3 py-1.5 rounded-md transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200">
+        <button onclick="switchTab('digital-twin')" id="tab-digital-twin" class="tab-btn px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100">
           <i data-lucide="activity" class="w-3.5 h-3.5"></i>
           <span>2. Digital Twin (Detect)</span>
         </button>
-        <button onclick="switchTab('explainability')" id="tab-explainability" class="tab-btn px-3 py-1.5 rounded-md transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200">
+        <button onclick="switchTab('explainability')" id="tab-explainability" class="tab-btn px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100">
           <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
           <span>3. SHAP Explain (Explain)</span>
         </button>
-        <button onclick="switchTab('optimizer')" id="tab-optimizer" class="tab-btn px-3 py-1.5 rounded-md transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200">
+        <button onclick="switchTab('optimizer')" id="tab-optimizer" class="tab-btn px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100">
           <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
           <span>4. CP-SAT Plan (Optimize)</span>
         </button>
-        <button onclick="switchTab('simulator')" id="tab-simulator" class="tab-btn px-3 py-1.5 rounded-md transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200">
+        <button onclick="switchTab('simulator')" id="tab-simulator" class="tab-btn px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100">
           <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
           <span>5. What-If Sandbox (Simulate)</span>
         </button>
-        <button onclick="switchTab('audit')" id="tab-audit" class="tab-btn px-3 py-1.5 rounded-md transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200">
+        <button onclick="switchTab('audit')" id="tab-audit" class="tab-btn px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100">
           <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
           <span>6. SHA-256 Ledger (Act)</span>
+        </button>
+        <button onclick="switchTab('docs')" id="tab-docs" class="tab-btn px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+          <i data-lucide="code" class="w-3.5 h-3.5"></i>
+          <span>7. API & Documentation</span>
         </button>
       </nav>
     </div>
@@ -115,99 +127,101 @@
     <!-- ==================== VIEW 1: FLEET COMMAND ==================== -->
     <section id="view-command" class="view-panel space-y-6">
       <!-- Top Banner -->
-      <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-cyan-950/40 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div class="bg-gradient-to-r from-white via-white to-blue-50/60 border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xs">
         <div class="flex items-center gap-3">
-          <div class="p-2.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+          <div class="p-2.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-600">
             <i data-lucide="shield" class="w-6 h-6"></i>
           </div>
           <div>
-            <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
               No. 45 Flying Daggers • Fleet Command Center
-              <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+              <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">
                 100% OPERATIONAL TELEMETRY
               </span>
             </h2>
-            <p class="text-xs text-slate-400">
+            <p class="text-xs text-slate-500">
               Synchronized 24 twin-engine multirole fighter airframes. Continuous C-MAPSS anomaly tracking & CP-SAT scheduling active.
             </p>
           </div>
         </div>
-        <button onclick="switchTab('optimizer')" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-cyan-500 text-slate-950 hover:bg-cyan-400 flex items-center gap-2 transition font-mono">
-          <i data-lucide="sparkles" class="w-4 h-4"></i>
-          <span>View CP-SAT Master Plan</span>
-        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="switchTab('optimizer')" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2 transition font-mono shadow-xs">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <span>View CP-SAT Master Plan</span>
+          </button>
+        </div>
       </div>
 
       <!-- KPI Summary Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <!-- Fleet Availability Rate -->
-        <div class="bg-[#0b1120] border border-slate-800/80 rounded-xl p-4">
-          <div class="flex items-center justify-between text-slate-400 mb-2">
-            <span class="text-xs uppercase font-mono tracking-wider">Fleet Availability</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">+15.4 pt</span>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs hover:shadow-sm transition">
+          <div class="flex items-center justify-between text-slate-500 mb-2">
+            <span class="text-xs uppercase font-mono font-bold tracking-wider">Fleet Availability</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono font-bold">+15.4 pt</span>
           </div>
-          <div class="text-2xl font-black text-white font-mono flex items-baseline gap-2">
-            <span id="kpiAvailPct">86.8%</span>
-            <span class="text-xs text-slate-400 font-normal">vs 71.4% reactive</span>
+          <div class="text-2xl font-black text-slate-900 font-mono flex items-baseline gap-2">
+            <span id="kpiAvailPct" class="text-emerald-600">86.8%</span>
+            <span class="text-xs text-slate-500 font-normal">vs 71.4% reactive</span>
           </div>
-          <div class="mt-2 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-            <div id="kpiAvailBar" class="bg-emerald-400 h-1.5 rounded-full" style="width: 86.8%"></div>
+          <div class="mt-2 w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+            <div id="kpiAvailBar" class="bg-emerald-500 h-1.5 rounded-full" style="width: 86.8%"></div>
           </div>
         </div>
 
         <!-- Mission Ready Airframes -->
-        <div class="bg-[#0b1120] border border-slate-800/80 rounded-xl p-4">
-          <div class="flex items-center justify-between text-slate-400 mb-2">
-            <span class="text-xs uppercase font-mono tracking-wider">Mission Ready</span>
-            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs hover:shadow-sm transition">
+          <div class="flex items-center justify-between text-slate-500 mb-2">
+            <span class="text-xs uppercase font-mono font-bold tracking-wider">Mission Ready</span>
+            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
           </div>
-          <div class="text-2xl font-black text-white font-mono flex items-baseline gap-2">
-            <span id="kpiReadyCount">18</span>
-            <span class="text-xs text-slate-400 font-normal">/ 24 Airframes</span>
+          <div class="text-2xl font-black text-slate-900 font-mono flex items-baseline gap-2">
+            <span id="kpiReadyCount">19</span>
+            <span class="text-xs text-slate-500 font-normal">/ 24 Airframes</span>
           </div>
-          <p class="text-[11px] text-slate-400 mt-2 font-mono">Sortie ready with 100% weapons go-status</p>
+          <p class="text-[11px] text-slate-500 mt-2 font-mono">Sortie ready with 100% weapons go-status</p>
         </div>
 
         <!-- Scheduled In Hangar -->
-        <div class="bg-[#0b1120] border border-slate-800/80 rounded-xl p-4">
-          <div class="flex items-center justify-between text-slate-400 mb-2">
-            <span class="text-xs uppercase font-mono tracking-wider">Scheduled Bay Slots</span>
-            <i data-lucide="wrench" class="w-4 h-4 text-amber-400"></i>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs hover:shadow-sm transition">
+          <div class="flex items-center justify-between text-slate-500 mb-2">
+            <span class="text-xs uppercase font-mono font-bold tracking-wider">Scheduled Bay Slots</span>
+            <i data-lucide="wrench" class="w-4 h-4 text-amber-600"></i>
           </div>
-          <div class="text-2xl font-black text-amber-400 font-mono flex items-baseline gap-2">
-            <span id="kpiSchedCount">3</span>
-            <span class="text-xs text-slate-400 font-normal">Airframes In Queue</span>
+          <div class="text-2xl font-black text-amber-600 font-mono flex items-baseline gap-2">
+            <span id="kpiSchedCount">1</span>
+            <span class="text-xs text-slate-500 font-normal">Airframes In Queue</span>
           </div>
-          <p class="text-[11px] text-slate-400 mt-2 font-mono">Optimized into bundled bay visits</p>
+          <p class="text-[11px] text-slate-500 mt-2 font-mono">Optimized into bundled bay visits</p>
         </div>
 
         <!-- Critical RUL Warning -->
-        <div class="bg-[#0b1120] border border-slate-800/80 rounded-xl p-4">
-          <div class="flex items-center justify-between text-slate-400 mb-2">
-            <span class="text-xs uppercase font-mono tracking-wider">Critical RUL Warning</span>
-            <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400"></i>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs hover:shadow-sm transition">
+          <div class="flex items-center justify-between text-slate-500 mb-2">
+            <span class="text-xs uppercase font-mono font-bold tracking-wider">Critical RUL Warning</span>
+            <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600"></i>
           </div>
-          <div class="text-2xl font-black text-rose-400 font-mono flex items-baseline gap-2">
-            <span id="kpiCriticalCount">3</span>
-            <span class="text-xs text-slate-400 font-normal">Safe RUL &lt; 7 Days</span>
+          <div class="text-2xl font-black text-rose-600 font-mono flex items-baseline gap-2">
+            <span id="kpiCriticalCount">4</span>
+            <span class="text-xs text-slate-500 font-normal">Safe RUL &lt; 7 Days</span>
           </div>
-          <p class="text-[11px] text-rose-400/80 mt-2 font-mono">Pessimistic bounds locked; spares pre-allocated</p>
+          <p class="text-[11px] text-rose-600/80 mt-2 font-mono">Pessimistic bounds locked; spares pre-allocated</p>
         </div>
       </div>
 
       <!-- Squadron Matrix & Filter Chips -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-        <h3 class="text-sm font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">
-          <span>Squadron Airframe Status Matrix (24 Airframes)</span>
-          <span class="text-xs text-slate-400 font-normal">— click any card to inspect Digital Twin</span>
+        <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider font-mono flex items-center gap-2">
+          <span>Squadron Airframe Status Matrix (24 Fighters)</span>
+          <span class="text-xs text-slate-500 font-normal">— click any card to inspect Digital Twin</span>
         </h3>
 
-        <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 p-1 rounded-lg font-mono text-xs">
+        <div class="flex items-center gap-1.5 bg-slate-100 border border-slate-200 p-1 rounded-lg font-mono text-xs shadow-2xs">
           <i data-lucide="filter" class="w-3.5 h-3.5 text-slate-400 ml-2 mr-1"></i>
-          <button onclick="filterFleet('ALL')" id="flt-ALL" class="flt-btn px-2.5 py-1 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">All (24)</button>
-          <button onclick="filterFleet('READY')" id="flt-READY" class="flt-btn px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200">Ready</button>
-          <button onclick="filterFleet('SCHEDULED')" id="flt-SCHEDULED" class="flt-btn px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200">Scheduled</button>
-          <button onclick="filterFleet('CRITICAL')" id="flt-CRITICAL" class="flt-btn px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200">Critical</button>
+          <button onclick="filterFleet('ALL')" id="flt-ALL" class="flt-btn px-2.5 py-1 rounded-md bg-white text-blue-700 border border-slate-200 shadow-xs font-bold">All (24)</button>
+          <button onclick="filterFleet('READY')" id="flt-READY" class="flt-btn px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900">Ready</button>
+          <button onclick="filterFleet('SCHEDULED')" id="flt-SCHEDULED" class="flt-btn px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900">Scheduled</button>
+          <button onclick="filterFleet('CRITICAL')" id="flt-CRITICAL" class="flt-btn px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900">Critical</button>
         </div>
       </div>
 
@@ -219,78 +233,80 @@
 
     <!-- ==================== VIEW 2: DIGITAL TWIN (DETECT) ==================== -->
     <section id="view-digital-twin" class="view-panel hidden space-y-6">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/90 border border-slate-800 p-4 rounded-xl">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200 p-4 rounded-xl shadow-xs">
         <div class="flex items-center gap-3">
-          <div class="p-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400">
+          <div class="p-2.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-600">
             <i data-lucide="cpu" class="w-6 h-6"></i>
           </div>
           <div>
-            <h2 class="text-base font-bold text-white font-mono flex items-center gap-2">
+            <h2 class="text-base font-bold text-slate-900 font-mono flex items-center gap-2">
               <span id="dtTailTitle">IAF-SK-103</span>
-              <span id="dtCallsign" class="text-xs text-slate-400 font-normal">Viper-3</span>
-              <span id="dtStatusBadge" class="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-rose-500/20 text-rose-400 border border-rose-500/40">CRITICAL RISK</span>
+              <span id="dtCallsign" class="text-xs text-slate-500 font-normal">Viper-3</span>
+              <span id="dtStatusBadge" class="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-rose-50 text-rose-700 border border-rose-200">CRITICAL RISK</span>
             </h2>
-            <p class="text-xs text-slate-400">Continuous Multi-Variate C-MAPSS Telemetry & Isolation Forest Anomaly Scoring</p>
+            <p class="text-xs text-slate-500">Continuous Multi-Variate C-MAPSS Telemetry & Isolation Forest Anomaly Scoring</p>
           </div>
         </div>
 
-        <!-- Aircraft Selector Dropdown -->
-        <div class="flex items-center gap-2">
-          <label class="text-xs font-mono text-slate-400">Select Airframe:</label>
-          <select id="dtSelectAircraft" onchange="selectAircraft(this.value)" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-mono text-cyan-300 focus:outline-none focus:border-cyan-500">
-            <!-- Populated via JS -->
-          </select>
+        <!-- Aircraft Selector Dropdown & Quick Navigation -->
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-mono text-slate-600">Select Airframe:</label>
+            <select id="dtSelectAircraft" onchange="selectAircraft(this.value)" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-800 focus:outline-none focus:border-blue-500">
+              <!-- Populated via JS -->
+            </select>
+          </div>
+          <button onclick="switchTab('explainability')" class="px-3 py-1.5 text-xs font-mono font-semibold rounded-lg bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 flex items-center gap-1 transition">
+            <span>Root Cause SHAP</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </button>
         </div>
       </div>
 
       <!-- Metric Badges Row -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
-          <span class="text-xs text-slate-400 uppercase font-mono">Anomaly Index (Isolation Forest)</span>
-          <div class="text-2xl font-black text-rose-400 font-mono mt-1" id="dtAnomalyScore">84.2 / 100</div>
-          <span class="text-[10px] text-slate-400 font-mono" id="dtSeverityLabel">SEVERITY: CRITICAL EXCURSION</span>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <span class="text-xs text-slate-500 uppercase font-mono font-semibold">Anomaly Index (Isolation Forest)</span>
+          <div class="text-2xl font-black text-rose-600 font-mono mt-1" id="dtAnomalyScore">84.2 / 100</div>
+          <span class="text-[10px] text-rose-600 font-mono font-bold" id="dtSeverityLabel">SEVERITY: CRITICAL</span>
         </div>
-        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
-          <span class="text-xs text-slate-400 uppercase font-mono">Flight Cycles & Hours</span>
-          <div class="text-2xl font-black text-white font-mono mt-1" id="dtCycles">215 <span class="text-xs text-slate-400 font-normal">cycles (397.8 hrs)</span></div>
-          <span class="text-[10px] text-slate-400 font-mono">Twin-Engine Multirole Fighter</span>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <span class="text-xs text-slate-500 uppercase font-mono font-semibold">Accumulated Flight Hours</span>
+          <div class="text-2xl font-black text-slate-900 font-mono mt-1" id="dtCycles">412 <span class="text-xs text-slate-500 font-normal">cycles</span></div>
+          <span class="text-[10px] text-slate-500 font-mono">Assigned Squadron Sorties</span>
         </div>
-        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
-          <span class="text-xs text-slate-400 uppercase font-mono">Subsystem At Risk</span>
-          <div class="text-xl font-bold text-cyan-300 font-mono mt-1" id="dtSubsystem">Propulsion (HPT)</div>
-          <span class="text-[10px] text-slate-400 font-mono" id="dtSpareNeeded">Requires: High-Pressure Turbine Rotor Blade Set</span>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <span class="text-xs text-slate-500 uppercase font-mono font-semibold">Subsystem Degradation</span>
+          <div class="text-base font-bold text-amber-600 font-mono mt-1 truncate" id="dtSubsystem">High-Pressure Turbine</div>
+          <span class="text-[10px] text-slate-500 font-mono" id="dtSpareNeeded">Requires: HPT Rotor Blade Set</span>
         </div>
-        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
-          <span class="text-xs text-slate-400 uppercase font-mono">Safe Flight Window</span>
-          <div class="text-2xl font-black text-amber-400 font-mono mt-1" id="dtSafeDays">10 Days Remaining</div>
-          <span class="text-[10px] text-slate-400 font-mono">P10 Pessimistic: 12 cycles</span>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <span class="text-xs text-slate-500 uppercase font-mono font-semibold">Pessimistic Deadline (P10)</span>
+          <div class="text-2xl font-black text-blue-600 font-mono mt-1" id="dtSafeDays">4 Days Remaining</div>
+          <span class="text-[10px] text-emerald-600 font-mono">CP-SAT Scheduling Constraint</span>
         </div>
       </div>
 
-      <!-- Telemetry Chart Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
-          <div class="flex items-center justify-between mb-3">
-            <h4 class="text-xs font-mono font-bold text-white uppercase flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-rose-400 inline-block"></span>
-              Exhaust Gas Temperature (EGT / T50) vs Baseline (1400 R)
-            </h4>
-            <span class="text-[11px] font-mono text-rose-400" id="latestEgt">1482.4 R (+82.4)</span>
+      <!-- Telemetry Charts (Light Theme) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Chart 1: EGT -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs font-mono font-bold text-slate-900 uppercase">T50 — Exhaust Gas Temp (EGT Profile)</h3>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">Limit: 1460 °R</span>
           </div>
-          <div class="h-60">
+          <div class="h-48">
             <canvas id="chartEGT"></canvas>
           </div>
         </div>
 
-        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
-          <div class="flex items-center justify-between mb-3">
-            <h4 class="text-xs font-mono font-bold text-white uppercase flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
-              Rotor Vibration Amplitude (in/s) vs Baseline (0.12)
-            </h4>
-            <span class="text-[11px] font-mono text-amber-400" id="latestVib">0.421 in/s (+0.301)</span>
+        <!-- Chart 2: Vibration -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs font-mono font-bold text-slate-900 uppercase">Core Shaft Vibration (in/sec)</h3>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">Limit: 0.35 in/s</span>
           </div>
-          <div class="h-60">
+          <div class="h-48">
             <canvas id="chartVib"></canvas>
           </div>
         </div>
@@ -299,59 +315,64 @@
 
     <!-- ==================== VIEW 3: SHAP EXPLAINABILITY (EXPLAIN) ==================== -->
     <section id="view-explainability" class="view-panel hidden space-y-6">
-      <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/40 border border-slate-800 rounded-xl p-4">
-        <h2 class="text-base font-bold text-white font-mono flex items-center gap-2">
-          <i data-lucide="help-circle" class="w-5 h-5 text-indigo-400"></i>
-          <span>SHAP Feature Attribution & Aeronautical Diagnostic Narrative</span>
-        </h2>
-        <p class="text-xs text-slate-400 mt-1">
-          Slide 3: Explainable AI bridges mathematical sensor variances into actionable plain-language flight-line directives.
-        </p>
+      <div class="bg-gradient-to-r from-white via-white to-indigo-50/50 border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xs">
+        <div>
+          <h2 class="text-base font-bold text-slate-900 font-mono flex items-center gap-2">
+            <i data-lucide="help-circle" class="w-5 h-5 text-indigo-600"></i>
+            <span>SHAP Root Cause Feature Attribution & Flight Line Narrative</span>
+          </h2>
+          <p class="text-xs text-slate-500">
+            Transforms opaque machine learning predictions into plain-language aeronautical engineering maintenance directives.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="switchTab('optimizer')" class="px-3.5 py-1.5 text-xs font-mono font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex items-center gap-1.5 shadow-xs">
+            <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+            <span>View Schedule in CP-SAT</span>
+          </button>
+        </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Left: SHAP Attributions Bar Chart -->
-        <div class="lg:col-span-2 bg-[#0b1120] border border-slate-800 rounded-xl p-5 space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 class="text-sm font-bold font-mono text-white flex items-center gap-2">
-              <span>Sensor Driver Contributions to Health Degradation</span>
-            </h3>
-            <span class="text-xs font-mono text-cyan-400" id="explainTailLabel">IAF-SK-103</span>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Left: Drivers Contribution List -->
+        <div class="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-xs">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="text-xs font-mono font-bold text-slate-900 uppercase">Normalized SHAP Sensor Drivers</h3>
+            <span class="text-xs font-mono text-blue-700 font-bold" id="explainTailLabel">IAF-SK-103</span>
           </div>
-
           <div id="shapDriversList" class="space-y-3 font-mono text-xs">
             <!-- Populated via JS -->
           </div>
         </div>
 
-        <!-- Right: Quantile RUL Band & Narrative Box -->
-        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-5 space-y-4 flex flex-col justify-between">
-          <div>
-            <h3 class="text-sm font-bold font-mono text-white border-b border-slate-800 pb-3 flex items-center gap-2">
-              <i data-lucide="compass" class="w-4 h-4 text-cyan-400"></i>
-              <span>RUL Quantile Confidence Bounds</span>
-            </h3>
-
-            <div class="mt-4 p-3 rounded-lg bg-slate-950 border border-slate-800 text-center font-mono">
-              <div class="text-[10px] text-slate-400 uppercase">90% Confidence Interval</div>
-              <div class="text-xl font-black text-cyan-400 mt-1" id="explainRulRange">12 – 24 cycles</div>
-              <div class="text-xs text-slate-300 mt-0.5">Most Likely Median: <span id="explainRulMedian" class="font-bold text-white">18 cycles</span></div>
-              <div class="text-[11px] text-rose-400 mt-2 font-bold" id="explainSafeLimit">Pessimistic Safety Constraint: 10 Days</div>
-            </div>
-
-            <div class="mt-4 space-y-2">
-              <div class="text-xs font-mono font-bold text-slate-300 uppercase">Aeronautical Engineering Diagnostic:</div>
-              <p class="text-xs text-slate-300 leading-relaxed bg-slate-950/70 border border-slate-800/80 p-3 rounded-lg" id="explainNarrative">
-                Aircraft IAF-SK-103 exhibits marked thermal/mechanical divergence. The primary driver is Exhaust Gas Temperature (1482.4 R vs baseline 1400.0 R), accounting for 48.2% of the degraded health index. High-pressure turbine seal degradation likely.
-              </p>
-            </div>
+        <!-- Right: Aeronautical Narrative & Directive -->
+        <div class="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-xs">
+          <div class="border-b border-slate-100 pb-3">
+            <h3 class="text-xs font-mono font-bold text-slate-900 uppercase">Aeronautical Engineering Diagnostic Narrative</h3>
+            <span class="text-xs text-slate-500">Automated Natural Language Synthesis</span>
           </div>
 
-          <div class="mt-4 p-3 rounded-lg bg-cyan-950/30 border border-cyan-800/40">
-            <div class="text-[11px] font-mono font-bold text-cyan-400 uppercase">Official Recommendation:</div>
-            <p class="text-xs text-cyan-200 mt-1" id="explainRecommendation">
-              Ground for scheduled depot intervention within 10 days. Inspect Propulsion for thermal barrier coating spallation. Pre-position High-Pressure Turbine Rotor Blade Set.
+          <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
+            <div class="text-[11px] font-mono font-bold text-slate-700 uppercase">Diagnostic Findings:</div>
+            <p class="text-xs text-slate-700 mt-1 leading-relaxed" id="explainNarrative">
+              Elevated Exhaust Gas Temperature (EGT) indicates thermal barrier degradation. Core shaft vibration confirms early blade spallation in the high-pressure turbine stage.
             </p>
+          </div>
+
+          <div class="p-3.5 rounded-lg bg-blue-50/80 border border-blue-200">
+            <div class="text-[11px] font-mono font-bold text-blue-800 uppercase">Official Recommendation:</div>
+            <p class="text-xs text-blue-900 mt-1 font-medium" id="explainRecommendation">
+              Ground for scheduled depot intervention within 10 days. Pre-position High-Pressure Turbine Rotor Blade Set.
+            </p>
+          </div>
+
+          <div class="pt-2 flex items-center justify-between">
+            <span class="text-xs text-slate-500 font-mono" id="explainSafeLimit">Pessimistic Safety Constraint: 4 Days</span>
+            <button onclick="openSignModal()" class="px-3.5 py-1.5 text-xs font-mono font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition flex items-center gap-1 shadow-xs">
+              <i data-lucide="file-check" class="w-3.5 h-3.5"></i>
+              <span>Authorize Release / Action</span>
+            </button>
           </div>
         </div>
       </div>
@@ -359,19 +380,19 @@
 
     <!-- ==================== VIEW 4: CP-SAT MASTER PLAN (OPTIMIZE) ==================== -->
     <section id="view-optimizer" class="view-panel hidden space-y-6">
-      <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950/40 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div class="bg-gradient-to-r from-white via-white to-emerald-50/50 border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xs">
         <div>
-          <h2 class="text-base font-bold text-white font-mono flex items-center gap-2">
-            <i data-lucide="cpu" class="w-5 h-5 text-emerald-400"></i>
+          <h2 class="text-base font-bold text-slate-900 font-mono flex items-center gap-2">
+            <i data-lucide="cpu" class="w-5 h-5 text-emerald-600"></i>
             <span>Google OR-Tools CP-SAT Master Maintenance Schedule (30-Day Window)</span>
           </h2>
-          <p class="text-xs text-slate-400">
-            Formulation: Maximize Ready Aircraft-Days subject to Pessimistic RUL, Hangar Bay No-Overlap, Technician Roster, and Spares Lead-Time constraints.
+          <p class="text-xs text-slate-500">
+            Formulation: Maximize Ready Aircraft-Days subject to Pessimistic RUL, Hangar Bay No-Overlap, Technician Capacity, and Spares Lead-Times.
           </p>
         </div>
 
         <div class="flex items-center gap-2">
-          <button onclick="triggerOptimization()" class="px-3.5 py-2 text-xs font-mono font-bold rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition flex items-center gap-1.5 shadow-md shadow-emerald-500/20">
+          <button onclick="triggerOptimization()" class="px-3.5 py-2 text-xs font-mono font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition flex items-center gap-1.5 shadow-sm shadow-emerald-600/20">
             <i data-lucide="play" class="w-4 h-4"></i>
             <span>Re-Solve Schedule</span>
           </button>
@@ -380,33 +401,33 @@
 
       <!-- Optimization Benchmarks Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
-          <span class="text-xs text-slate-400 uppercase font-mono">Solver Status</span>
-          <div class="text-2xl font-black text-emerald-400 font-mono mt-1" id="optStatus">OPTIMAL</div>
-          <span class="text-[10px] text-slate-400 font-mono" id="optSolveTime">Solve Time: 82.0 ms</span>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <span class="text-xs text-slate-500 uppercase font-mono font-semibold">Solver Status</span>
+          <div class="text-2xl font-black text-emerald-600 font-mono mt-1" id="optStatus">OPTIMAL</div>
+          <span class="text-[10px] text-slate-500 font-mono" id="optSolveTime">Solve Time: 27.4 ms</span>
         </div>
-        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
-          <span class="text-xs text-slate-400 uppercase font-mono">Ready Aircraft-Days (30d)</span>
-          <div class="text-2xl font-black text-white font-mono mt-1" id="optReadyDays">625 / 720</div>
-          <span class="text-[10px] text-emerald-400 font-mono">+111 days vs reactive</span>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <span class="text-xs text-slate-500 uppercase font-mono font-semibold">Ready Aircraft-Days (30d)</span>
+          <div class="text-2xl font-black text-slate-900 font-mono mt-1" id="optReadyDays">625 / 720</div>
+          <span class="text-[10px] text-emerald-600 font-mono font-bold">+111 days vs reactive</span>
         </div>
-        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
-          <span class="text-xs text-slate-400 uppercase font-mono">Fleet Availability Rate</span>
-          <div class="text-2xl font-black text-emerald-400 font-mono mt-1" id="optAvailRate">86.8%</div>
-          <span class="text-[10px] text-slate-400 font-mono">+15.4 pt gain (target +5-10 pt)</span>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <span class="text-xs text-slate-500 uppercase font-mono font-semibold">Fleet Availability Rate</span>
+          <div class="text-2xl font-black text-emerald-600 font-mono mt-1" id="optAvailRate">86.8%</div>
+          <span class="text-[10px] text-slate-500 font-mono">+15.4 pt gain (target +5-10 pt)</span>
         </div>
-        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
-          <span class="text-xs text-slate-400 uppercase font-mono">Work Bundling Efficiency</span>
-          <div class="text-2xl font-black text-cyan-400 font-mono mt-1">100% Bundled</div>
-          <span class="text-[10px] text-slate-400 font-mono">Zero fragmented downtime</span>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <span class="text-xs text-slate-500 uppercase font-mono font-semibold">Work Bundling Efficiency</span>
+          <div class="text-2xl font-black text-blue-600 font-mono mt-1">100% Bundled</div>
+          <span class="text-[10px] text-slate-500 font-mono">Zero fragmented downtime</span>
         </div>
       </div>
 
       <!-- 30-Day Daily Availability Timeline Chart -->
-      <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
+      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
         <div class="flex items-center justify-between mb-2">
-          <h3 class="text-xs font-mono font-bold text-white uppercase">30-Day Squadron Mission-Ready Aircraft Curve</h3>
-          <span class="text-[11px] font-mono text-emerald-400">Min: 19 ready • Max: 23 ready</span>
+          <h3 class="text-xs font-mono font-bold text-slate-900 uppercase">30-Day Squadron Mission-Ready Aircraft Timeline</h3>
+          <span class="text-[11px] font-mono text-emerald-600 font-semibold">Target Readiness: 19 fighters</span>
         </div>
         <div class="h-44">
           <canvas id="chartScheduleTimeline"></canvas>
@@ -414,15 +435,15 @@
       </div>
 
       <!-- Scheduled Interventions Table -->
-      <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4 space-y-3">
-        <h3 class="text-xs font-mono font-bold text-white uppercase flex items-center justify-between">
+      <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-3 shadow-xs">
+        <h3 class="text-xs font-mono font-bold text-slate-900 uppercase flex items-center justify-between">
           <span>Scheduled Interventions & Spares Requisitions (30-Day Plan)</span>
-          <span class="text-[11px] text-slate-400 font-normal">Hangar Slots: Bay 1 (Heavy), Bay 2 (Intermediate), Bay 3 (Avionics)</span>
+          <span class="text-[11px] text-slate-500 font-normal">Hangar Slots: Bay 1 (Heavy), Bay 2 (Intermediate), Bay 3 (Avionics)</span>
         </h3>
 
         <div class="overflow-x-auto">
-          <table class="w-full text-left font-mono text-xs text-slate-300">
-            <thead class="bg-slate-900 border-b border-slate-800 text-slate-400">
+          <table class="w-full text-left font-mono text-xs text-slate-800">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600">
               <tr>
                 <th class="py-2.5 px-3">Tail Number</th>
                 <th class="py-2.5 px-3">Start Day</th>
@@ -434,7 +455,7 @@
                 <th class="py-2.5 px-3">Status</th>
               </tr>
             </thead>
-            <tbody id="interventionsTableBody" class="divide-y divide-slate-800/60">
+            <tbody id="interventionsTableBody" class="divide-y divide-slate-100">
               <!-- Rendered via JS -->
             </tbody>
           </table>
@@ -444,60 +465,60 @@
 
     <!-- ==================== VIEW 5: WHAT-IF SIMULATOR (SIMULATE) ==================== -->
     <section id="view-simulator" class="view-panel hidden space-y-6">
-      <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-amber-950/40 border border-slate-800 rounded-xl p-4">
-        <h2 class="text-base font-bold text-white font-mono flex items-center gap-2">
-          <i data-lucide="sliders" class="w-5 h-5 text-amber-400"></i>
+      <div class="bg-gradient-to-r from-white via-white to-amber-50/50 border border-slate-200 rounded-xl p-4 shadow-xs">
+        <h2 class="text-base font-bold text-slate-900 font-mono flex items-center gap-2">
+          <i data-lucide="sliders" class="w-5 h-5 text-amber-600"></i>
           <span>Dynamic What-If Operational Stress Testing Sandbox</span>
         </h2>
-        <p class="text-xs text-slate-400">
-          Slide 3 & 4: Stress-test fleet availability under supply chain blockades, sudden combat surge tempos, hangar closures, and roster deficits.
+        <p class="text-xs text-slate-500">
+          Stress-test fleet availability under supply chain blockades, combat surge tempos, hangar closures, and roster deficits.
         </p>
       </div>
 
       <!-- Controls & Sliders Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-[#0b1120] border border-slate-800 p-5 rounded-xl font-mono text-xs">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white border border-slate-200 p-5 rounded-xl font-mono text-xs shadow-xs">
         <!-- Spares Delay -->
         <div>
-          <div class="flex items-center justify-between text-slate-300 mb-1">
+          <div class="flex items-center justify-between text-slate-700 mb-1 font-semibold">
             <span>Spares Supply Delay:</span>
-            <span id="lblDelay" class="font-bold text-cyan-300">+0 days</span>
+            <span id="lblDelay" class="text-blue-600">+0 days</span>
           </div>
-          <input type="range" min="0" max="14" value="0" id="sliderDelay" oninput="updateSimulatorLabels()" class="w-full accent-cyan-400">
-          <div class="flex justify-between text-[10px] text-slate-500 mt-1"><span>0d (Nominal)</span><span>+14d</span></div>
+          <input type="range" min="0" max="14" value="0" id="sliderDelay" oninput="updateSimulatorLabels()" class="w-full accent-blue-600">
+          <div class="flex justify-between text-[10px] text-slate-400 mt-1"><span>0d (Nominal)</span><span>+14d</span></div>
         </div>
 
         <!-- Combat Sortie Surge -->
         <div>
-          <div class="flex items-center justify-between text-slate-300 mb-1">
+          <div class="flex items-center justify-between text-slate-700 mb-1 font-semibold">
             <span>Sortie Surge Multiplier:</span>
-            <span id="lblSurge" class="font-bold text-amber-300">1.0x tempo</span>
+            <span id="lblSurge" class="text-amber-600">1.0x tempo</span>
           </div>
-          <input type="range" min="10" max="18" value="10" step="1" id="sliderSurge" oninput="updateSimulatorLabels()" class="w-full accent-amber-400">
-          <div class="flex justify-between text-[10px] text-slate-500 mt-1"><span>1.0x (Peace)</span><span>1.8x (Combat)</span></div>
+          <input type="range" min="10" max="18" value="10" step="1" id="sliderSurge" oninput="updateSimulatorLabels()" class="w-full accent-amber-600">
+          <div class="flex justify-between text-[10px] text-slate-400 mt-1"><span>1.0x (Peace)</span><span>1.8x (Combat)</span></div>
         </div>
 
         <!-- Technician Shortage -->
         <div>
-          <div class="flex items-center justify-between text-slate-300 mb-1">
+          <div class="flex items-center justify-between text-slate-700 mb-1 font-semibold">
             <span>Tech Roster Deficit:</span>
-            <span id="lblTech" class="font-bold text-rose-300">0%</span>
+            <span id="lblTech" class="text-rose-600">0%</span>
           </div>
-          <input type="range" min="0" max="50" value="0" step="10" id="sliderTech" oninput="updateSimulatorLabels()" class="w-full accent-rose-400">
-          <div class="flex justify-between text-[10px] text-slate-500 mt-1"><span>0%</span><span>-50% staff</span></div>
+          <input type="range" min="0" max="50" value="0" step="10" id="sliderTech" oninput="updateSimulatorLabels()" class="w-full accent-rose-600">
+          <div class="flex justify-between text-[10px] text-slate-400 mt-1"><span>0%</span><span>-50% staff</span></div>
         </div>
 
         <!-- Hangar Bay Closure -->
         <div>
-          <div class="flex items-center justify-between text-slate-300 mb-1">
+          <div class="flex items-center justify-between text-slate-700 mb-1 font-semibold">
             <span>Simulate Bay Outage:</span>
           </div>
-          <select id="selectClosedBay" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-cyan-300">
+          <select id="selectClosedBay" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
             <option value="None">None (All Bays Operational)</option>
             <option value="Bay-1">Bay-1 (Heavy Overhaul Outage)</option>
             <option value="Bay-2">Bay-2 (Intermediate Maint Outage)</option>
             <option value="Bay-3">Bay-3 (Avionics Bay Outage)</option>
           </select>
-          <button onclick="runSimulation()" class="w-full mt-2.5 py-2 font-bold rounded-lg bg-amber-500 text-slate-950 hover:bg-amber-400 transition flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/20">
+          <button onclick="runSimulation()" class="w-full mt-2.5 py-2 font-bold rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition flex items-center justify-center gap-1.5 shadow-xs">
             <i data-lucide="play" class="w-3.5 h-3.5"></i>
             <span>Simulate Contingency</span>
           </button>
@@ -508,38 +529,38 @@
       <div id="simResultsSection" class="space-y-4">
         <!-- Delta KPI Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4 font-mono">
-            <span class="text-xs text-slate-400 uppercase">Baseline vs Scenario Availability</span>
+          <div class="bg-white border border-slate-200 rounded-xl p-4 font-mono shadow-xs">
+            <span class="text-xs text-slate-500 uppercase font-semibold">Baseline vs Scenario Availability</span>
             <div class="flex items-baseline gap-3 mt-1">
-              <span class="text-2xl font-black text-slate-300" id="simBaseAvail">86.8%</span>
-              <span class="text-slate-500">→</span>
-              <span class="text-2xl font-black text-amber-400" id="simScenAvail">84.0%</span>
+              <span class="text-2xl font-black text-slate-800" id="simBaseAvail">86.8%</span>
+              <span class="text-slate-400">→</span>
+              <span class="text-2xl font-black text-amber-600" id="simScenAvail">84.0%</span>
             </div>
-            <div class="text-xs font-bold text-rose-400 mt-1" id="simDeltaAvail">-2.8 pt delta</div>
+            <div class="text-xs font-bold text-rose-600 mt-1" id="simDeltaAvail">-2.8 pt delta</div>
           </div>
 
-          <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4 font-mono">
-            <span class="text-xs text-slate-400 uppercase">Impact on Ready Aircraft-Days</span>
+          <div class="bg-white border border-slate-200 rounded-xl p-4 font-mono shadow-xs">
+            <span class="text-xs text-slate-500 uppercase font-semibold">Impact on Ready Aircraft-Days</span>
             <div class="flex items-baseline gap-3 mt-1">
-              <span class="text-2xl font-black text-slate-300" id="simBaseDays">625</span>
-              <span class="text-slate-500">→</span>
-              <span class="text-2xl font-black text-amber-400" id="simScenDays">605</span>
+              <span class="text-2xl font-black text-slate-800" id="simBaseDays">625</span>
+              <span class="text-slate-400">→</span>
+              <span class="text-2xl font-black text-amber-600" id="simScenDays">605</span>
             </div>
-            <div class="text-xs font-bold text-rose-400 mt-1" id="simDeltaDays">-20 Aircraft-Days</div>
+            <div class="text-xs font-bold text-rose-600 mt-1" id="simDeltaDays">-20 Aircraft-Days</div>
           </div>
 
-          <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4 font-mono">
-            <span class="text-xs text-slate-400 uppercase">Readiness Assessment</span>
-            <div class="text-xl font-black text-emerald-400 mt-1" id="simSeverity">MODERATE_IMPACT</div>
-            <div class="text-[10px] text-slate-400 mt-1">Resilient buffer protects combat readiness</div>
+          <div class="bg-white border border-slate-200 rounded-xl p-4 font-mono shadow-xs">
+            <span class="text-xs text-slate-500 uppercase font-semibold">Readiness Assessment</span>
+            <div class="text-xl font-black text-emerald-600 mt-1" id="simSeverity">MODERATE_IMPACT</div>
+            <div class="text-[10px] text-slate-500 mt-1">Resilient buffer protects combat readiness</div>
           </div>
         </div>
 
         <!-- Comparative Curve Chart -->
-        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
           <div class="flex items-center justify-between mb-2">
-            <h3 class="text-xs font-mono font-bold text-white uppercase">Nominal Plan vs Contingency Stress Curve</h3>
-            <span class="text-[11px] font-mono text-cyan-400">Real-Time OR-Tools Re-Planning Result</span>
+            <h3 class="text-xs font-mono font-bold text-slate-900 uppercase">Nominal Plan vs Contingency Stress Curve</h3>
+            <span class="text-[11px] font-mono text-blue-600 font-semibold">Real-Time OR-Tools Re-Planning Result</span>
           </div>
           <div class="h-56">
             <canvas id="chartWhatIfComparison"></canvas>
@@ -547,12 +568,12 @@
         </div>
 
         <!-- Contingency Directives -->
-        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4 space-y-2">
-          <h3 class="text-xs font-mono font-bold text-amber-400 uppercase flex items-center gap-2">
+        <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-2 shadow-xs">
+          <h3 class="text-xs font-mono font-bold text-amber-700 uppercase flex items-center gap-2">
             <i data-lucide="shield-alert" class="w-4 h-4"></i>
             <span>Automated Contingency Mitigations & Re-Allocation Directives</span>
           </h3>
-          <ul id="simMitigationsList" class="space-y-1.5 font-mono text-xs text-slate-300">
+          <ul id="simMitigationsList" class="space-y-1.5 font-mono text-xs text-slate-700">
             <!-- Populated via JS -->
           </ul>
         </div>
@@ -561,23 +582,23 @@
 
     <!-- ==================== VIEW 6: SHA-256 AUDIT LEDGER (ACT) ==================== -->
     <section id="view-audit" class="view-panel hidden space-y-6">
-      <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-cyan-950/40 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div class="bg-gradient-to-r from-white via-white to-blue-50/50 border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xs">
         <div>
-          <h2 class="text-base font-bold text-white font-mono flex items-center gap-2">
-            <i data-lucide="lock" class="w-5 h-5 text-cyan-400"></i>
+          <h2 class="text-base font-bold text-slate-900 font-mono flex items-center gap-2">
+            <i data-lucide="lock" class="w-5 h-5 text-blue-600"></i>
             <span>Tamper-Evident SHA-256 Cryptographic Audit Ledger</span>
           </h2>
-          <p class="text-xs text-slate-400">
-            Slide 4: Air-gapped, zero-outbound compliance. Advisory recommendations require human authorization with immutable cryptographic hash chaining.
+          <p class="text-xs text-slate-500">
+            Defense air-gapped compliance. Advisory recommendations require human officer authorization with immutable cryptographic hash chaining.
           </p>
         </div>
 
         <div class="flex items-center gap-3">
-          <button onclick="verifyLedgerIntegrity()" class="px-3 py-1.5 text-xs font-mono font-bold rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition flex items-center gap-1.5">
+          <button onclick="verifyLedgerIntegrity()" class="px-3 py-1.5 text-xs font-mono font-bold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition flex items-center gap-1.5">
             <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
             <span>Verify Blockchain Integrity</span>
           </button>
-          <button onclick="openSignModal()" class="px-3.5 py-1.5 text-xs font-mono font-bold rounded-lg bg-cyan-500 text-slate-950 hover:bg-cyan-400 transition flex items-center gap-1.5 shadow-md shadow-cyan-500/20">
+          <button onclick="openSignModal()" class="px-3.5 py-1.5 text-xs font-mono font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex items-center gap-1.5 shadow-xs">
             <i data-lucide="pen-tool" class="w-3.5 h-3.5"></i>
             <span>Sign Release / Override</span>
           </button>
@@ -585,18 +606,18 @@
       </div>
 
       <!-- Ledger Table -->
-      <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4 space-y-3">
+      <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-3 shadow-xs">
         <div class="flex items-center justify-between text-xs font-mono">
-          <span class="text-slate-400">Immutable Ledger Entries: <span id="auditBlockCount" class="text-white font-bold">4</span> Blocks</span>
-          <span class="text-emerald-400 flex items-center gap-1">
+          <span class="text-slate-600 font-medium">Immutable Ledger Entries: <span id="auditBlockCount" class="text-slate-900 font-bold">2</span> Blocks</span>
+          <span class="text-emerald-700 flex items-center gap-1 font-semibold">
             <i data-lucide="check" class="w-3.5 h-3.5"></i>
             <span id="auditIntegrityStatus">Cryptographic Chain Verified Valid (100%)</span>
           </span>
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full text-left font-mono text-xs text-slate-300">
-            <thead class="bg-slate-900 border-b border-slate-800 text-slate-400">
+          <table class="w-full text-left font-mono text-xs text-slate-800">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600">
               <tr>
                 <th class="py-2.5 px-3">#</th>
                 <th class="py-2.5 px-3">Timestamp</th>
@@ -607,7 +628,7 @@
                 <th class="py-2.5 px-3">SHA-256 Hash</th>
               </tr>
             </thead>
-            <tbody id="auditTableBody" class="divide-y divide-slate-800/60 font-mono">
+            <tbody id="auditTableBody" class="divide-y divide-slate-100 font-mono">
               <!-- Populated via JS -->
             </tbody>
           </table>
@@ -615,27 +636,59 @@
       </div>
     </section>
 
+    <!-- ==================== VIEW 7: INTEGRATED API & DOCUMENTATION (INTERCONNECTED) ==================== -->
+    <section id="view-docs" class="view-panel hidden space-y-6">
+      <div class="bg-gradient-to-r from-white via-white to-blue-50/50 border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xs">
+        <div>
+          <h2 class="text-base font-bold text-slate-900 font-mono flex items-center gap-2">
+            <i data-lucide="code" class="w-5 h-5 text-blue-600"></i>
+            <span>Integrated SkyReady REST API & OpenAPI Explorer</span>
+          </h2>
+          <p class="text-xs text-slate-500">
+            Interactive Swagger documentation connected directly within this dashboard. Test endpoints, run optimizations, and verify data contracts.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2 font-mono text-xs">
+          <button onclick="document.getElementById('docsIframe').src = '/docs'" class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 font-semibold hover:bg-blue-100">
+            Swagger UI
+          </button>
+          <button onclick="document.getElementById('docsIframe').src = '/redoc'" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 font-semibold hover:bg-slate-200">
+            ReDoc
+          </button>
+          <a href="/openapi.json" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 font-semibold hover:bg-slate-200">
+            Raw JSON
+          </a>
+        </div>
+      </div>
+
+      <!-- Embedded Iframe for Complete In-Website Integration -->
+      <div class="bg-white border border-slate-200 rounded-xl p-2 shadow-xs">
+        <iframe src="/docs" id="docsIframe" class="w-full h-[750px] rounded-lg border-0 bg-white" title="Interactive API Docs"></iframe>
+      </div>
+    </section>
+
   </main>
 
   <!-- Signing Modal -->
-  <div id="signModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-[#0b1120] border border-slate-700 rounded-xl max-w-lg w-full p-6 space-y-4 font-mono shadow-2xl">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 class="text-sm font-bold text-white flex items-center gap-2">
-          <i data-lucide="file-signature" class="w-4 h-4 text-cyan-400"></i>
+  <div id="signModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-300 rounded-xl max-w-lg w-full p-6 space-y-4 font-mono shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+          <i data-lucide="file-signature" class="w-4 h-4 text-blue-600"></i>
           <span>Officer Release-to-Service Authorization</span>
         </h3>
-        <button onclick="closeSignModal()" class="text-slate-400 hover:text-white">&times;</button>
+        <button onclick="closeSignModal()" class="text-slate-400 hover:text-slate-700 font-bold text-lg">&times;</button>
       </div>
 
       <div class="space-y-3 text-xs">
         <div>
-          <label class="block text-slate-400 mb-1">Operator ID & Rank:</label>
-          <input type="text" id="signOperator" value="Wing Commander A. Roy (CO)" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white">
+          <label class="block text-slate-600 mb-1 font-semibold">Operator ID & Rank:</label>
+          <input type="text" id="signOperator" value="Wing Commander A. Roy (CO)" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-900 focus:outline-none focus:border-blue-500">
         </div>
         <div>
-          <label class="block text-slate-400 mb-1">Action Type:</label>
-          <select id="signAction" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-cyan-300">
+          <label class="block text-slate-600 mb-1 font-semibold">Action Type:</label>
+          <select id="signAction" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-blue-700 font-semibold focus:outline-none focus:border-blue-500">
             <option value="RELEASE_TO_SERVICE_APPROVED">Release to Service (Sortie Clearance)</option>
             <option value="DEPOT_MAINTENANCE_AUTHORIZED">Depot Heavy Maintenance Authorized</option>
             <option value="EXPEDITE_SPARES_AIRLIFT">Expedite Emergency Spares Requisition</option>
@@ -643,18 +696,18 @@
           </select>
         </div>
         <div>
-          <label class="block text-slate-400 mb-1">Target Airframe / Subsystem:</label>
-          <input type="text" id="signDetails" value="IAF-SK-103: HPT Rotor Blade Assembly Replacement" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white">
+          <label class="block text-slate-600 mb-1 font-semibold">Target Airframe / Subsystem:</label>
+          <input type="text" id="signDetails" value="IAF-SK-103: HPT Rotor Blade Assembly Replacement" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-900 focus:outline-none focus:border-blue-500">
         </div>
         <div>
-          <label class="block text-slate-400 mb-1">Mandatory Justification Rationale (Slide 4):</label>
-          <textarea id="signJustification" rows="3" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white" placeholder="Document technical and operational justification for audit ledger..."></textarea>
+          <label class="block text-slate-600 mb-1 font-semibold">Mandatory Justification Rationale:</label>
+          <textarea id="signJustification" rows="3" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-900 focus:outline-none focus:border-blue-500" placeholder="Document technical and operational justification for immutable audit ledger..."></textarea>
         </div>
       </div>
 
-      <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
-        <button onclick="closeSignModal()" class="px-3.5 py-1.5 text-xs text-slate-400 hover:text-white">Cancel</button>
-        <button onclick="submitApprovalAction()" class="px-4 py-2 text-xs font-bold rounded-lg bg-cyan-500 text-slate-950 hover:bg-cyan-400 transition flex items-center gap-1.5">
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+        <button onclick="closeSignModal()" class="px-3.5 py-1.5 text-xs text-slate-600 hover:text-slate-900">Cancel</button>
+        <button onclick="submitApprovalAction()" class="px-4 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex items-center gap-1.5 shadow-xs">
           <i data-lucide="check" class="w-3.5 h-3.5"></i>
           <span>Sign & Commit SHA-256 Block</span>
         </button>
@@ -663,10 +716,10 @@
   </div>
 
   <!-- Tactical Footer -->
-  <footer class="border-t border-slate-800 bg-[#0b1120] py-3 text-center text-xs font-mono text-slate-400">
+  <footer class="border-t border-slate-200 bg-white py-4 text-center text-xs font-mono text-slate-500">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
       <span>SkyReady • Problem Statement ID SIH26249 • Ministry of Defence (MoD) / DSSC</span>
-      <span class="text-cyan-400 font-bold">One loop: DETECT › PREDICT › EXPLAIN › OPTIMIZE › SIMULATE › ACT</span>
+      <span class="text-blue-700 font-bold">One loop: DETECT › PREDICT › EXPLAIN › OPTIMIZE › SIMULATE › ACT</span>
       <span>Air-Gapped Operational Ready</span>
     </div>
   </footer>
@@ -681,11 +734,11 @@
     let chartTimelineInstance = null;
     let chartWhatIfInstance = null;
 
-    // Tab Switching
+    // Tab Switching (Interconnected inside this single website)
     function switchTab(tabId) {
       document.querySelectorAll('.view-panel').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.className = 'tab-btn px-3 py-1.5 rounded-md transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200';
+        btn.className = 'tab-btn px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100';
       });
 
       const activeView = document.getElementById(`view-${tabId}`);
@@ -693,7 +746,7 @@
 
       const activeBtn = document.getElementById(`tab-${tabId}`);
       if (activeBtn) {
-        activeBtn.className = 'tab-btn px-3 py-1.5 rounded-md transition-all flex items-center gap-2 bg-cyan-500/20 text-cyan-300 border border-cyan-500/40';
+        activeBtn.className = 'tab-btn px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200 font-bold shadow-xs';
       }
 
       if (tabId === 'digital-twin') loadDigitalTwin(globalSelectedTail);
@@ -721,7 +774,7 @@
         globalFleet = data.aircraft || [];
         
         // Update KPIs
-        document.getElementById('headerAvailRate').innerHTML = `${data.kpis.current_availability_pct}% <span class="text-[10px] font-normal text-slate-400">(+15.4 pt)</span>`;
+        document.getElementById('headerAvailRate').innerHTML = `${data.kpis.current_availability_pct}% <span class="text-[10px] font-normal text-slate-500">(+15.4 pt)</span>`;
         document.getElementById('kpiAvailPct').innerText = `${data.kpis.current_availability_pct}%`;
         document.getElementById('kpiAvailBar').style.width = `${data.kpis.current_availability_pct}%`;
         document.getElementById('kpiReadyCount').innerText = data.kpis.mission_ready_count;
@@ -739,6 +792,7 @@
     // Populate Aircraft Dropdown
     function populateSelectAircraft() {
       const select = document.getElementById('dtSelectAircraft');
+      if (!select) return;
       select.innerHTML = '';
       globalFleet.forEach(ac => {
         const opt = document.createElement('option');
@@ -759,21 +813,21 @@
         const isSched = ac.status === 'SCHEDULED_MAINTENANCE';
         
         const cardBorder = isCritical
-          ? 'border-rose-500/40 bg-gradient-to-br from-slate-900 via-slate-900 to-rose-950/20'
+          ? 'border-rose-300 bg-rose-50/50 hover:border-rose-500'
           : isSched
-          ? 'border-amber-500/30 bg-gradient-to-br from-slate-900 via-slate-900 to-amber-950/20'
-          : 'border-slate-800 bg-[#0b1120] hover:border-cyan-500/40';
+          ? 'border-amber-300 bg-amber-50/50 hover:border-amber-500'
+          : 'border-slate-200 bg-white hover:border-blue-400';
 
         const badgeHtml = isCritical
-          ? `<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/40 font-bold">CRITICAL RISK</span>`
+          ? `<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-100 text-rose-700 border border-rose-300 font-bold">CRITICAL</span>`
           : isSched
-          ? `<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold">SCHEDULED</span>`
-          : `<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold">MISSION READY</span>`;
+          ? `<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 font-bold">SCHEDULED</span>`
+          : `<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold">READY</span>`;
 
-        const healthColor = ac.health_score < 60 ? 'text-rose-400' : (ac.health_score < 80 ? 'text-amber-400' : 'text-emerald-400');
+        const healthColor = ac.health_score < 60 ? 'text-rose-600' : (ac.health_score < 80 ? 'text-amber-600' : 'text-emerald-600');
 
         const card = document.createElement('div');
-        card.className = `border ${cardBorder} rounded-xl p-3.5 cursor-pointer transition-all hover:scale-[1.01] hover:shadow-lg relative group`;
+        card.className = `border ${cardBorder} rounded-xl p-3.5 cursor-pointer transition-all hover:scale-[1.01] hover:shadow-md relative group shadow-xs`;
         card.onclick = () => {
           globalSelectedTail = ac.tail_number;
           switchTab('digital-twin');
@@ -782,30 +836,30 @@
         card.innerHTML = `
           <div class="flex items-center justify-between mb-2">
             <div>
-              <div class="text-sm font-bold text-white font-mono group-hover:text-cyan-400 transition-colors">${ac.tail_number}</div>
-              <div class="text-[11px] text-slate-400">${ac.callsign}</div>
+              <div class="text-sm font-bold text-slate-900 font-mono group-hover:text-blue-600 transition-colors">${ac.tail_number}</div>
+              <div class="text-[11px] text-slate-500">${ac.callsign}</div>
             </div>
             ${badgeHtml}
           </div>
 
           <div class="mt-2 flex items-center justify-between text-xs font-mono">
-            <span class="text-slate-400">Health Index:</span>
+            <span class="text-slate-500">Health Index:</span>
             <span class="font-bold ${healthColor}">${ac.health_score} / 100</span>
           </div>
 
           <div class="mt-1 flex items-center justify-between text-xs font-mono">
-            <span class="text-slate-400">RUL Quantile:</span>
-            <span class="text-slate-200">${ac.rul.display_range}</span>
+            <span class="text-slate-500">RUL Quantile:</span>
+            <span class="text-slate-800 font-medium">${ac.rul.display_range}</span>
           </div>
 
           <div class="mt-1 flex items-center justify-between text-xs font-mono">
-            <span class="text-slate-400">Safe Window:</span>
-            <span class="font-bold ${isCritical ? 'text-rose-400' : 'text-slate-300'}">${ac.rul.safe_days_remaining} Days Remaining</span>
+            <span class="text-slate-500">Safe Window:</span>
+            <span class="font-bold ${isCritical ? 'text-rose-600' : 'text-slate-700'}">${ac.rul.safe_days_remaining} Days Remaining</span>
           </div>
 
-          <div class="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-            <span class="truncate max-w-[140px] text-cyan-300/80 font-mono">${ac.subsystem_at_risk}</span>
-            <span class="flex items-center text-slate-400 group-hover:text-cyan-400 transition-colors text-[10px] font-mono">
+          <div class="mt-2.5 pt-2 border-t border-slate-200/80 flex items-center justify-between text-[11px] text-slate-500">
+            <span class="truncate max-w-[140px] text-blue-700 font-mono font-medium">${ac.subsystem_at_risk}</span>
+            <span class="flex items-center text-slate-400 group-hover:text-blue-600 transition-colors text-[10px] font-mono font-bold">
               Inspect &rarr;
             </span>
           </div>
@@ -816,8 +870,10 @@
 
     // Filter Fleet
     function filterFleet(type) {
-      document.querySelectorAll('.flt-btn').forEach(b => b.className = 'flt-btn px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200');
-      document.getElementById(`flt-${type}`).className = 'flt-btn px-2.5 py-1 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/40';
+      document.querySelectorAll('.flt-btn').forEach(b => {
+        b.className = 'flt-btn px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900';
+      });
+      document.getElementById(`flt-${type}`).className = 'flt-btn px-2.5 py-1 rounded-md bg-white text-blue-700 border border-slate-200 shadow-xs font-bold';
 
       if (type === 'ALL') renderFleetGrid(globalFleet);
       else if (type === 'READY') renderFleetGrid(globalFleet.filter(a => a.status === 'MISSION_READY'));
@@ -843,29 +899,28 @@
         document.getElementById('dtCallsign').innerText = ac.callsign;
         document.getElementById('dtAnomalyScore').innerText = `${anomaly.anomaly_score} / 100`;
         document.getElementById('dtSeverityLabel').innerText = `SEVERITY: ${anomaly.severity}`;
-        document.getElementById('dtCycles').innerHTML = `${ac.cycles_flown} <span class="text-xs text-slate-400 font-normal">cycles (${ac.flight_hours} hrs)</span>`;
+        document.getElementById('dtCycles').innerHTML = `${ac.cycles_flown} <span class="text-xs text-slate-500 font-normal">cycles (${ac.flight_hours} hrs)</span>`;
         document.getElementById('dtSubsystem').innerText = ac.subsystem_at_risk;
         document.getElementById('dtSpareNeeded').innerText = `Requires: ${ac.maintenance_spec.spare_name}`;
         document.getElementById('dtSafeDays').innerText = `${ac.rul.safe_days_remaining} Days Remaining`;
 
-        const statusBadge = document.getElementById('dtStatusBadge');
-        statusBadge.innerText = ac.status;
-        statusBadge.className = ac.status === 'CRITICAL_RISK'
-          ? 'text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-rose-500/20 text-rose-400 border border-rose-500/40'
-          : (ac.status === 'SCHEDULED_MAINTENANCE'
-            ? 'text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30'
-            : 'text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30');
+        const badge = document.getElementById('dtStatusBadge');
+        if (ac.status === 'CRITICAL_RISK') {
+          badge.className = "text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-rose-100 text-rose-700 border border-rose-300";
+          badge.innerText = "CRITICAL RISK";
+        } else if (ac.status === 'SCHEDULED_MAINTENANCE') {
+          badge.className = "text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-amber-100 text-amber-800 border border-amber-300";
+          badge.innerText = "SCHEDULED";
+        } else {
+          badge.className = "text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-300";
+          badge.innerText = "MISSION READY";
+        }
 
-        // Draw Telemetry Charts
-        const telem = ac.recent_telemetry || [];
-        const labels = telem.map(t => `Cyc ${t.cycle}`);
-        const egtData = telem.map(t => t.T50_EGT);
-        const vibData = telem.map(t => t.vibration);
-
-        const latestE = egtData[egtData.length - 1] || 1400;
-        const latestV = vibData[vibData.length - 1] || 0.12;
-        document.getElementById('latestEgt').innerText = `${latestE} R (${latestE > 1400 ? '+' : ''}${(latestE - 1400).toFixed(1)})`;
-        document.getElementById('latestVib').innerText = `${latestV} in/s (${latestV > 0.12 ? '+' : ''}${(latestV - 0.12).toFixed(3)})`;
+        // Render Charts with Light Theme
+        const telemetry = data.telemetry || [];
+        const labels = telemetry.map(t => `C${t.cycle}`);
+        const egtData = telemetry.map(t => t.sensors.T50_EGT);
+        const vibData = telemetry.map(t => t.sensors.vibration);
 
         // Chart 1: EGT
         if (chartEGTInstance) chartEGTInstance.destroy();
@@ -875,18 +930,18 @@
             labels: labels,
             datasets: [
               {
-                label: 'Exhaust Gas Temp (T50)',
+                label: 'T50 EGT (°R)',
                 data: egtData,
-                borderColor: '#f43f5e',
-                backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.08)',
                 borderWidth: 2,
                 fill: true,
                 tension: 0.3
               },
               {
-                label: 'Nominal Baseline (1400 R)',
-                data: labels.map(() => 1400),
-                borderColor: '#64748b',
+                label: 'Redline Limit (1460 °R)',
+                data: labels.map(() => 1460),
+                borderColor: '#94a3b8',
                 borderDash: [5, 5],
                 borderWidth: 1.5,
                 pointRadius: 0
@@ -896,10 +951,10 @@
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } } } },
+            plugins: { legend: { labels: { color: '#475569', font: { family: 'JetBrains Mono', size: 10 } } } },
             scales: {
-              x: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#1e293b' } },
-              y: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#1e293b' } }
+              x: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#e2e8f0' } },
+              y: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#e2e8f0' } }
             }
           }
         });
@@ -914,8 +969,8 @@
               {
                 label: 'HP Rotor Vibration (in/s)',
                 data: vibData,
-                borderColor: '#f59e0b',
-                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                borderColor: '#d97706',
+                backgroundColor: 'rgba(217, 119, 6, 0.08)',
                 borderWidth: 2,
                 fill: true,
                 tension: 0.3
@@ -923,7 +978,7 @@
               {
                 label: 'Nominal Baseline (0.12 in/s)',
                 data: labels.map(() => 0.12),
-                borderColor: '#64748b',
+                borderColor: '#94a3b8',
                 borderDash: [5, 5],
                 borderWidth: 1.5,
                 pointRadius: 0
@@ -933,10 +988,10 @@
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } } } },
+            plugins: { legend: { labels: { color: '#475569', font: { family: 'JetBrains Mono', size: 10 } } } },
             scales: {
-              x: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#1e293b' } },
-              y: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#1e293b' } }
+              x: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#e2e8f0' } },
+              y: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#e2e8f0' } }
             }
           }
         });
@@ -955,8 +1010,6 @@
         const ac = data.aircraft;
 
         document.getElementById('explainTailLabel').innerText = `${ac.tail_number} (${ac.callsign})`;
-        document.getElementById('explainRulRange').innerText = `${ac.rul.p10_pessimistic} – ${ac.rul.p90_optimistic} cycles`;
-        document.getElementById('explainRulMedian').innerText = `${ac.rul.median} cycles`;
         document.getElementById('explainSafeLimit').innerText = `Pessimistic Safety Constraint: ${ac.rul.safe_days_remaining} Days`;
         document.getElementById('explainNarrative').innerText = exp.narrative;
         document.getElementById('explainRecommendation').innerText = exp.recommendation;
@@ -968,11 +1021,11 @@
           row.className = 'space-y-1';
           row.innerHTML = `
             <div class="flex items-center justify-between">
-              <span class="text-slate-300 font-semibold">${d.label}</span>
-              <span class="text-cyan-400 font-bold">${d.contribution_pct}% contribution</span>
+              <span class="text-slate-800 font-semibold">${d.label}</span>
+              <span class="text-blue-700 font-bold">${d.contribution_pct}% contribution</span>
             </div>
-            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-              <div class="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full" style="width: ${d.contribution_pct}%"></div>
+            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+              <div class="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full" style="width: ${d.contribution_pct}%"></div>
             </div>
             <div class="flex items-center justify-between text-[10px] text-slate-500">
               <span>Observed: ${d.value} (Nominal: ${d.nominal})</span>
@@ -1004,16 +1057,16 @@
         tbody.innerHTML = '';
         data.scheduled_interventions.forEach(item => {
           const tr = document.createElement('tr');
-          tr.className = 'hover:bg-slate-900/50 transition';
+          tr.className = 'hover:bg-slate-50 transition';
           tr.innerHTML = `
-            <td class="py-2.5 px-3 font-bold text-white">${item.tail_number}</td>
+            <td class="py-2.5 px-3 font-bold text-slate-900">${item.tail_number}</td>
             <td class="py-2.5 px-3">Day ${item.start_day + 1}</td>
             <td class="py-2.5 px-3">${item.duration_days} days</td>
-            <td class="py-2.5 px-3 text-cyan-300">${item.bay_id}</td>
+            <td class="py-2.5 px-3 text-blue-700 font-semibold">${item.bay_id}</td>
             <td class="py-2.5 px-3">${item.technicians_assigned} techs</td>
-            <td class="py-2.5 px-3 text-slate-300">${item.spare_requisitioned}</td>
-            <td class="py-2.5 px-3 text-emerald-400 font-bold">YES (&lt; Day ${item.latest_safe_start_day + 1})</td>
-            <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">OPTIMAL</span></td>
+            <td class="py-2.5 px-3 text-slate-700">${item.spare_requisitioned}</td>
+            <td class="py-2.5 px-3 text-emerald-700 font-bold">YES (&lt; Day ${item.latest_safe_start_day + 1})</td>
+            <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">OPTIMAL</span></td>
           `;
           tbody.appendChild(tr);
         });
@@ -1032,7 +1085,7 @@
                 label: 'Ready Aircraft (CP-SAT)',
                 data: readyCounts,
                 borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                backgroundColor: 'rgba(16, 185, 129, 0.08)',
                 borderWidth: 2,
                 fill: true,
                 stepped: true
@@ -1040,7 +1093,7 @@
               {
                 label: 'Target Readiness (19 ac)',
                 data: days.map(() => 19.2),
-                borderColor: '#f59e0b',
+                borderColor: '#d97706',
                 borderDash: [5, 5],
                 borderWidth: 1.5,
                 pointRadius: 0
@@ -1050,10 +1103,10 @@
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } } } },
+            plugins: { legend: { labels: { color: '#475569', font: { family: 'JetBrains Mono', size: 10 } } } },
             scales: {
-              x: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#1e293b' } },
-              y: { min: 14, max: 24, ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#1e293b' } }
+              x: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#e2e8f0' } },
+              y: { min: 14, max: 24, ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#e2e8f0' } }
             }
           }
         });
@@ -1125,8 +1178,8 @@
         mitList.innerHTML = '';
         sim.contingency_mitigations.forEach(m => {
           const li = document.createElement('li');
-          li.className = 'flex items-start gap-2 bg-slate-950/70 border border-slate-800 p-2.5 rounded-lg';
-          li.innerHTML = `<span class="text-amber-400 font-bold">&bull;</span><span>${m}</span>`;
+          li.className = 'flex items-start gap-2 bg-slate-50 border border-slate-200 p-2.5 rounded-lg';
+          li.innerHTML = `<span class="text-amber-600 font-bold">&bull;</span><span>${m}</span>`;
           mitList.appendChild(li);
         });
 
@@ -1151,8 +1204,8 @@
               {
                 label: 'Simulated Contingency Stress',
                 data: scenReady,
-                borderColor: '#f59e0b',
-                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                borderColor: '#d97706',
+                backgroundColor: 'rgba(217, 119, 6, 0.08)',
                 borderWidth: 2,
                 fill: true,
                 stepped: true
@@ -1162,10 +1215,10 @@
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } } } },
+            plugins: { legend: { labels: { color: '#475569', font: { family: 'JetBrains Mono', size: 10 } } } },
             scales: {
-              x: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#1e293b' } },
-              y: { min: 14, max: 24, ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#1e293b' } }
+              x: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#e2e8f0' } },
+              y: { min: 14, max: 24, ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#e2e8f0' } }
             }
           }
         });
@@ -1190,15 +1243,15 @@
         tbody.innerHTML = '';
         logs.forEach(log => {
           const tr = document.createElement('tr');
-          tr.className = 'hover:bg-slate-900/50 transition';
+          tr.className = 'hover:bg-slate-50 transition';
           tr.innerHTML = `
-            <td class="py-2.5 px-3 font-bold text-cyan-400">#${log.index}</td>
-            <td class="py-2.5 px-3 text-slate-400">${log.timestamp.slice(0, 19).replace('T', ' ')}</td>
-            <td class="py-2.5 px-3 text-white font-semibold">${log.operator_rank} ${log.operator_id}</td>
-            <td class="py-2.5 px-3 text-emerald-400 font-bold">${log.action}</td>
-            <td class="py-2.5 px-3 text-slate-300 max-w-xs truncate">${log.details}</td>
-            <td class="py-2.5 px-3 text-slate-400 max-w-xs truncate">${log.justification}</td>
-            <td class="py-2.5 px-3 font-mono text-[10px] text-cyan-300/80">${log.current_hash.slice(0, 16)}...</td>
+            <td class="py-2.5 px-3 font-bold text-blue-700">#${log.index}</td>
+            <td class="py-2.5 px-3 text-slate-500">${log.timestamp.slice(0, 19).replace('T', ' ')}</td>
+            <td class="py-2.5 px-3 text-slate-900 font-semibold">${log.operator_rank} ${log.operator_id}</td>
+            <td class="py-2.5 px-3 text-emerald-700 font-bold">${log.action}</td>
+            <td class="py-2.5 px-3 text-slate-700 max-w-xs truncate">${log.details}</td>
+            <td class="py-2.5 px-3 text-slate-500 max-w-xs truncate">${log.justification}</td>
+            <td class="py-2.5 px-3 font-mono text-[10px] text-blue-600/80">${log.current_hash.slice(0, 16)}...</td>
           `;
           tbody.appendChild(tr);
         });
