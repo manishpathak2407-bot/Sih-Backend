@@ -1,7 +1,7 @@
 import hashlib
 import json
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 
 class AuditService:
@@ -16,15 +16,19 @@ class AuditService:
     def _initialize_genesis_entry(self):
         genesis = {
             "entry_id": 1,
+            "index": 1,
             "timestamp": "2026-10-20T08:00:00Z",
             "operator_id": "SYS-INIT",
             "operator_rank": "System Daemon",
             "action": "SYSTEM_INITIALIZATION",
             "details": "SkyReady Air-Gapped Secure Audit Log Initialized. DSSC Protocol SIH26249 active.",
             "prev_hash": "0000000000000000000000000000000000000000000000000000000000000000",
-            "hash": ""
+            "hash": "",
+            "current_hash": ""
         }
-        genesis["hash"] = self._compute_hash(genesis)
+        computed = self._compute_hash(genesis)
+        genesis["hash"] = computed
+        genesis["current_hash"] = computed
         self.log_chain.append(genesis)
 
         # Seed initial system log entries
@@ -51,18 +55,23 @@ class AuditService:
         prev_entry = self.log_chain[-1]
         new_id = prev_entry["entry_id"] + 1
         
+        now_ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         entry = {
             "entry_id": new_id,
-            "timestamp": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "index": new_id,
+            "timestamp": now_ts,
             "operator_id": operator_id,
             "operator_rank": operator_rank,
             "action": action,
             "details": details,
             "justification": justification or "Routine operational authorization",
             "prev_hash": prev_entry["hash"],
-            "hash": ""
+            "hash": "",
+            "current_hash": ""
         }
-        entry["hash"] = self._compute_hash(entry)
+        computed = self._compute_hash(entry)
+        entry["hash"] = computed
+        entry["current_hash"] = computed
         self.log_chain.append(entry)
         return entry
 

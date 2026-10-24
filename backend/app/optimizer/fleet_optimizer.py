@@ -86,6 +86,7 @@ class FleetAvailabilityOptimizer:
 
                 # Bay assignment (optional interval per bay)
                 bay_optional_intervals = []
+                bay_choices = []
                 for b_idx in range(num_bays):
                     bay_obj = bays[b_idx]
                     
@@ -99,14 +100,19 @@ class FleetAvailabilityOptimizer:
                     )
                     all_aircraft_intervals_per_bay[b_idx].append(opt_interval)
                     bay_optional_intervals.append(selected_b)
+                    bay_choices.append((b_idx, bay_obj["id"], selected_b))
 
-                # Exactly one available bay must be selected
+                # Scheduling status (can be scheduled if an eligible bay is available)
+                is_scheduled = model.NewBoolVar(f"is_sched_{a_idx}")
                 if bay_optional_intervals:
-                    model.AddExactlyOne(bay_optional_intervals)
+                    model.Add(sum(bay_optional_intervals) == is_scheduled)
+                else:
+                    model.Add(is_scheduled == 0)
 
-                # Add to technician cumulative resource tracking
+                # Add to technician cumulative resource tracking (only if scheduled)
+                # Tech demand interval enforced when is_scheduled is true
                 all_intervals_for_techs.append(
-                    model.NewIntervalVar(start_var, duration, end_var, f"tech_interval_{a_idx}")
+                    model.NewOptionalIntervalVar(start_var, duration, end_var, is_scheduled, f"tech_interval_{a_idx}")
                 )
                 tech_demands.append(techs_needed)
 
@@ -119,6 +125,8 @@ class FleetAvailabilityOptimizer:
                     "latest_safe_start": latest_safe_start,
                     "earliest_start": earliest_start,
                     "is_late": is_late,
+                    "is_scheduled": is_scheduled,
+                    "bay_choices": bay_choices,
                     "techs_needed": techs_needed,
                     "spares_name": maint["spare_name"],
                     "cost": ac["health_score"]
@@ -135,17 +143,13 @@ class FleetAvailabilityOptimizer:
             model.AddCumulative(all_intervals_for_techs, tech_demands, effective_daily_techs)
 
         # Objective Function:
-        # We maximize ready aircraft days across the 30-day window:
-        # Base ready aircraft days = (num_aircraft * 30) - total maintenance downtime days
-        # Penalty for late starts (grounding risk penalty)
-        total_downtime = sum(t["duration"] for t in aircraft_tasks)
-        base_ready_days = (num_aircraft * self.horizon_days) - total_downtime
-
+        # 1. Maximize number of scheduled maintenance actions (+25 per scheduled aircraft)
+        # 2. Penalize missing safe RUL deadline (-12 per late task)
+        # 3. Slight preference to perform maintenance earlier rather than pushing against limits (-1 per day)
         objective_terms = []
         for t in aircraft_tasks:
-            # Heavily penalize missing safe RUL deadline (counts as 12 penalty days per late task)
+            objective_terms.append(25 * t["is_scheduled"])
             objective_terms.append(-12 * t["is_late"])
-            # Slight preference to perform maintenance earlier rather than pushing against limits
             objective_terms.append(-1 * t["start_var"])
 
         model.Maximize(sum(objective_terms))
@@ -164,19 +168,24 @@ class FleetAvailabilityOptimizer:
 
         if status in [cp_model.OPTIMAL, cp_model.FEASIBLE]:
             for t in aircraft_tasks:
+                sched_val = bool(solver.Value(t["is_scheduled"]))
+                
+                if not sched_val:
+                    # Aircraft could not be accommodated in bays -> grounded once safe days reached
+                    for day in range(min(self.horizon_days, t["latest_safe_start"]), self.horizon_days):
+                        daily_ready_counts[day] -= 1
+                    continue
+
                 start_val = int(solver.Value(t["start_var"]))
                 end_val = int(solver.Value(t["end_var"]))
                 is_late_val = bool(solver.Value(t["is_late"]))
                 
-                # Determine chosen bay
+                # Determine chosen bay correctly from boolean variables
                 chosen_bay_id = "Bay-1"
-                for b_idx in range(num_bays):
-                    var_name = f"ac_{t['a_idx']}_bay_{b_idx}"
-                    # Find if chosen
-                    for b_i, b_obj in enumerate(bays):
-                        if b_i == b_idx:
-                            chosen_bay_id = b_obj["id"]
-                            break
+                for b_idx, b_name, b_var in t["bay_choices"]:
+                    if solver.Value(b_var) == 1:
+                        chosen_bay_id = b_name
+                        break
 
                 # Update daily ready counts during maintenance duration
                 for day in range(start_val, min(self.horizon_days, end_val)):
@@ -199,6 +208,9 @@ class FleetAvailabilityOptimizer:
                     "latest_safe_start_day": t["latest_safe_start"],
                     "status": "OPTIMAL_SCHEDULED" if not is_late_val else "HIGH_RISK_DELAY"
                 })
+        else:
+            # Fallback degraded count
+            daily_ready_counts = [int(num_aircraft * 0.65)] * self.horizon_days
 
         # Calculate fleet readiness statistics
         total_possible_aircraft_days = num_aircraft * self.horizon_days

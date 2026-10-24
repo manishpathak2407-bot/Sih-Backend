@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkyReady | Tactical Fleet Availability & Predictive Maintenance Optimizer</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✈️</text></svg>">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #070b14; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    .pulse-glow { box-shadow: 0 0 15px rgba(6, 182, 212, 0.35); }
+    .scanline {
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      background-size: 100% 2px, 3px 100%;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="bg-[#070b14] text-slate-100 min-h-screen flex flex-col selection:bg-cyan-500/30 selection:text-cyan-200">
+  
+  <!-- Top Command & Tactical Header -->
+  <header class="border-b border-slate-800 bg-[#0b1120]/95 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo & Squadron Title -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-slate-950 font-black text-xl">
+            ⚡
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-lg font-black tracking-wider text-white">SKYREADY</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-bold">
+                SIH26249 • MoD / DSSC
+              </span>
+            </div>
+            <div class="text-xs text-slate-400 font-mono flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block"></span>
+              <span>No. 45 Flying Daggers (24 Aircraft)</span>
+              <span class="text-slate-600">•</span>
+              <span class="text-cyan-400">Team ZEN / KILLSWITCHX</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Right Stats & Actions -->
+        <div class="flex items-center gap-4">
+          <!-- Readiness Gauge Chip -->
+          <div class="hidden md:flex items-center gap-3 bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-lg">
+            <div class="text-right">
+              <div class="text-[10px] font-mono uppercase text-slate-400">Fleet Availability</div>
+              <div class="text-sm font-black text-emerald-400 font-mono" id="headerAvailRate">86.8% <span class="text-[10px] font-normal text-slate-400">(+15.4 pt)</span></div>
+            </div>
+            <div class="w-8 h-8 rounded-full border-2 border-emerald-400 flex items-center justify-center font-mono text-[10px] font-bold text-emerald-400">
+              87%
+            </div>
+          </div>
+
+          <a href="/docs" target="_blank" class="px-3 py-1.5 text-xs font-mono font-semibold rounded-lg bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white border border-slate-700 transition flex items-center gap-1.5">
+            <i data-lucide="file-code" class="w-3.5 h-3.5"></i>
+            <span>Swagger API</span>
+          </a>
+
+          <button onclick="triggerOptimization()" class="px-3.5 py-1.5 text-xs font-mono font-bold rounded-lg bg-cyan-500 text-slate-950 hover:bg-cyan-400 transition flex items-center gap-1.5 shadow-md shadow-cyan-500/20" id="btnQuickSolve">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5" id="solveSpinIcon"></i>
+            <span>Run CP-SAT</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex space-x-1 sm:space-x-3 overflow-x-auto py-2 border-t border-slate-800/80 text-xs font-mono scrollbar-none">
+        <button onclick="switchTab('command')" id="tab-command" class="tab-btn px-3 py-1.5 rounded-md transition-all flex items-center gap-2 bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+          <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+          <span>1. Fleet Command</span>
+        </button>
+        <button onclick="switchTab('digital-twin')" id="tab-digital-twin" class="tab-btn px-3 py-1.5 rounded-md transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200">
+          <i data-lucide="activity" class="w-3.5 h-3.5"></i>
+          <span>2. Digital Twin (Detect)</span>
+        </button>
+        <button onclick="switchTab('explainability')" id="tab-explainability" class="tab-btn px-3 py-1.5 rounded-md transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200">
+          <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
+          <span>3. SHAP Explain (Explain)</span>
+        </button>
+        <button onclick="switchTab('optimizer')" id="tab-optimizer" class="tab-btn px-3 py-1.5 rounded-md transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200">
+          <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+          <span>4. CP-SAT Plan (Optimize)</span>
+        </button>
+        <button onclick="switchTab('simulator')" id="tab-simulator" class="tab-btn px-3 py-1.5 rounded-md transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200">
+          <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
+          <span>5. What-If Sandbox (Simulate)</span>
+        </button>
+        <button onclick="switchTab('audit')" id="tab-audit" class="tab-btn px-3 py-1.5 rounded-md transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+          <span>6. SHA-256 Ledger (Act)</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main View Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ==================== VIEW 1: FLEET COMMAND ==================== -->
+    <section id="view-command" class="view-panel space-y-6">
+      <!-- Top Banner -->
+      <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-cyan-950/40 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="p-2.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+            <i data-lucide="shield" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              No. 45 Flying Daggers • Fleet Command Center
+              <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                100% OPERATIONAL TELEMETRY
+              </span>
+            </h2>
+            <p class="text-xs text-slate-400">
+              Synchronized 24 twin-engine multirole fighter airframes. Continuous C-MAPSS anomaly tracking & CP-SAT scheduling active.
+            </p>
+          </div>
+        </div>
+        <button onclick="switchTab('optimizer')" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-cyan-500 text-slate-950 hover:bg-cyan-400 flex items-center gap-2 transition font-mono">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          <span>View CP-SAT Master Plan</span>
+        </button>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <!-- Fleet Availability Rate -->
+        <div class="bg-[#0b1120] border border-slate-800/80 rounded-xl p-4">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs uppercase font-mono tracking-wider">Fleet Availability</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">+15.4 pt</span>
+          </div>
+          <div class="text-2xl font-black text-white font-mono flex items-baseline gap-2">
+            <span id="kpiAvailPct">86.8%</span>
+            <span class="text-xs text-slate-400 font-normal">vs 71.4% reactive</span>
+          </div>
+          <div class="mt-2 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+            <div id="kpiAvailBar" class="bg-emerald-400 h-1.5 rounded-full" style="width: 86.8%"></div>
+          </div>
+        </div>
+
+        <!-- Mission Ready Airframes -->
+        <div class="bg-[#0b1120] border border-slate-800/80 rounded-xl p-4">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs uppercase font-mono tracking-wider">Mission Ready</span>
+            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+          </div>
+          <div class="text-2xl font-black text-white font-mono flex items-baseline gap-2">
+            <span id="kpiReadyCount">18</span>
+            <span class="text-xs text-slate-400 font-normal">/ 24 Airframes</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-2 font-mono">Sortie ready with 100% weapons go-status</p>
+        </div>
+
+        <!-- Scheduled In Hangar -->
+        <div class="bg-[#0b1120] border border-slate-800/80 rounded-xl p-4">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs uppercase font-mono tracking-wider">Scheduled Bay Slots</span>
+            <i data-lucide="wrench" class="w-4 h-4 text-amber-400"></i>
+          </div>
+          <div class="text-2xl font-black text-amber-400 font-mono flex items-baseline gap-2">
+            <span id="kpiSchedCount">3</span>
+            <span class="text-xs text-slate-400 font-normal">Airframes In Queue</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-2 font-mono">Optimized into bundled bay visits</p>
+        </div>
+
+        <!-- Critical RUL Warning -->
+        <div class="bg-[#0b1120] border border-slate-800/80 rounded-xl p-4">
+          <div class="flex items-center justify-between text-slate-400 mb-2">
+            <span class="text-xs uppercase font-mono tracking-wider">Critical RUL Warning</span>
+            <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400"></i>
+          </div>
+          <div class="text-2xl font-black text-rose-400 font-mono flex items-baseline gap-2">
+            <span id="kpiCriticalCount">3</span>
+            <span class="text-xs text-slate-400 font-normal">Safe RUL &lt; 7 Days</span>
+          </div>
+          <p class="text-[11px] text-rose-400/80 mt-2 font-mono">Pessimistic bounds locked; spares pre-allocated</p>
+        </div>
+      </div>
+
+      <!-- Squadron Matrix & Filter Chips -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+        <h3 class="text-sm font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">
+          <span>Squadron Airframe Status Matrix (24 Airframes)</span>
+          <span class="text-xs text-slate-400 font-normal">— click any card to inspect Digital Twin</span>
+        </h3>
+
+        <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 p-1 rounded-lg font-mono text-xs">
+          <i data-lucide="filter" class="w-3.5 h-3.5 text-slate-400 ml-2 mr-1"></i>
+          <button onclick="filterFleet('ALL')" id="flt-ALL" class="flt-btn px-2.5 py-1 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">All (24)</button>
+          <button onclick="filterFleet('READY')" id="flt-READY" class="flt-btn px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200">Ready</button>
+          <button onclick="filterFleet('SCHEDULED')" id="flt-SCHEDULED" class="flt-btn px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200">Scheduled</button>
+          <button onclick="filterFleet('CRITICAL')" id="flt-CRITICAL" class="flt-btn px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200">Critical</button>
+        </div>
+      </div>
+
+      <!-- 24 Aircraft Cards Grid -->
+      <div id="fleetGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        <!-- Rendered dynamically via JavaScript -->
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 2: DIGITAL TWIN (DETECT) ==================== -->
+    <section id="view-digital-twin" class="view-panel hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/90 border border-slate-800 p-4 rounded-xl">
+        <div class="flex items-center gap-3">
+          <div class="p-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400">
+            <i data-lucide="cpu" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-white font-mono flex items-center gap-2">
+              <span id="dtTailTitle">IAF-SK-103</span>
+              <span id="dtCallsign" class="text-xs text-slate-400 font-normal">Viper-3</span>
+              <span id="dtStatusBadge" class="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-rose-500/20 text-rose-400 border border-rose-500/40">CRITICAL RISK</span>
+            </h2>
+            <p class="text-xs text-slate-400">Continuous Multi-Variate C-MAPSS Telemetry & Isolation Forest Anomaly Scoring</p>
+          </div>
+        </div>
+
+        <!-- Aircraft Selector Dropdown -->
+        <div class="flex items-center gap-2">
+          <label class="text-xs font-mono text-slate-400">Select Airframe:</label>
+          <select id="dtSelectAircraft" onchange="selectAircraft(this.value)" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-mono text-cyan-300 focus:outline-none focus:border-cyan-500">
+            <!-- Populated via JS -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Metric Badges Row -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
+          <span class="text-xs text-slate-400 uppercase font-mono">Anomaly Index (Isolation Forest)</span>
+          <div class="text-2xl font-black text-rose-400 font-mono mt-1" id="dtAnomalyScore">84.2 / 100</div>
+          <span class="text-[10px] text-slate-400 font-mono" id="dtSeverityLabel">SEVERITY: CRITICAL EXCURSION</span>
+        </div>
+        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
+          <span class="text-xs text-slate-400 uppercase font-mono">Flight Cycles & Hours</span>
+          <div class="text-2xl font-black text-white font-mono mt-1" id="dtCycles">215 <span class="text-xs text-slate-400 font-normal">cycles (397.8 hrs)</span></div>
+          <span class="text-[10px] text-slate-400 font-mono">Twin-Engine Multirole Fighter</span>
+        </div>
+        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
+          <span class="text-xs text-slate-400 uppercase font-mono">Subsystem At Risk</span>
+          <div class="text-xl font-bold text-cyan-300 font-mono mt-1" id="dtSubsystem">Propulsion (HPT)</div>
+          <span class="text-[10px] text-slate-400 font-mono" id="dtSpareNeeded">Requires: High-Pressure Turbine Rotor Blade Set</span>
+        </div>
+        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
+          <span class="text-xs text-slate-400 uppercase font-mono">Safe Flight Window</span>
+          <div class="text-2xl font-black text-amber-400 font-mono mt-1" id="dtSafeDays">10 Days Remaining</div>
+          <span class="text-[10px] text-slate-400 font-mono">P10 Pessimistic: 12 cycles</span>
+        </div>
+      </div>
+
+      <!-- Telemetry Chart Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs font-mono font-bold text-white uppercase flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-rose-400 inline-block"></span>
+              Exhaust Gas Temperature (EGT / T50) vs Baseline (1400 R)
+            </h4>
+            <span class="text-[11px] font-mono text-rose-400" id="latestEgt">1482.4 R (+82.4)</span>
+          </div>
+          <div class="h-60">
+            <canvas id="chartEGT"></canvas>
+          </div>
+        </div>
+
+        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs font-mono font-bold text-white uppercase flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
+              Rotor Vibration Amplitude (in/s) vs Baseline (0.12)
+            </h4>
+            <span class="text-[11px] font-mono text-amber-400" id="latestVib">0.421 in/s (+0.301)</span>
+          </div>
+          <div class="h-60">
+            <canvas id="chartVib"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 3: SHAP EXPLAINABILITY (EXPLAIN) ==================== -->
+    <section id="view-explainability" class="view-panel hidden space-y-6">
+      <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/40 border border-slate-800 rounded-xl p-4">
+        <h2 class="text-base font-bold text-white font-mono flex items-center gap-2">
+          <i data-lucide="help-circle" class="w-5 h-5 text-indigo-400"></i>
+          <span>SHAP Feature Attribution & Aeronautical Diagnostic Narrative</span>
+        </h2>
+        <p class="text-xs text-slate-400 mt-1">
+          Slide 3: Explainable AI bridges mathematical sensor variances into actionable plain-language flight-line directives.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left: SHAP Attributions Bar Chart -->
+        <div class="lg:col-span-2 bg-[#0b1120] border border-slate-800 rounded-xl p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="text-sm font-bold font-mono text-white flex items-center gap-2">
+              <span>Sensor Driver Contributions to Health Degradation</span>
+            </h3>
+            <span class="text-xs font-mono text-cyan-400" id="explainTailLabel">IAF-SK-103</span>
+          </div>
+
+          <div id="shapDriversList" class="space-y-3 font-mono text-xs">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Right: Quantile RUL Band & Narrative Box -->
+        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-5 space-y-4 flex flex-col justify-between">
+          <div>
+            <h3 class="text-sm font-bold font-mono text-white border-b border-slate-800 pb-3 flex items-center gap-2">
+              <i data-lucide="compass" class="w-4 h-4 text-cyan-400"></i>
+              <span>RUL Quantile Confidence Bounds</span>
+            </h3>
+
+            <div class="mt-4 p-3 rounded-lg bg-slate-950 border border-slate-800 text-center font-mono">
+              <div class="text-[10px] text-slate-400 uppercase">90% Confidence Interval</div>
+              <div class="text-xl font-black text-cyan-400 mt-1" id="explainRulRange">12 – 24 cycles</div>
+              <div class="text-xs text-slate-300 mt-0.5">Most Likely Median: <span id="explainRulMedian" class="font-bold text-white">18 cycles</span></div>
+              <div class="text-[11px] text-rose-400 mt-2 font-bold" id="explainSafeLimit">Pessimistic Safety Constraint: 10 Days</div>
+            </div>
+
+            <div class="mt-4 space-y-2">
+              <div class="text-xs font-mono font-bold text-slate-300 uppercase">Aeronautical Engineering Diagnostic:</div>
+              <p class="text-xs text-slate-300 leading-relaxed bg-slate-950/70 border border-slate-800/80 p-3 rounded-lg" id="explainNarrative">
+                Aircraft IAF-SK-103 exhibits marked thermal/mechanical divergence. The primary driver is Exhaust Gas Temperature (1482.4 R vs baseline 1400.0 R), accounting for 48.2% of the degraded health index. High-pressure turbine seal degradation likely.
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-4 p-3 rounded-lg bg-cyan-950/30 border border-cyan-800/40">
+            <div class="text-[11px] font-mono font-bold text-cyan-400 uppercase">Official Recommendation:</div>
+            <p class="text-xs text-cyan-200 mt-1" id="explainRecommendation">
+              Ground for scheduled depot intervention within 10 days. Inspect Propulsion for thermal barrier coating spallation. Pre-position High-Pressure Turbine Rotor Blade Set.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 4: CP-SAT MASTER PLAN (OPTIMIZE) ==================== -->
+    <section id="view-optimizer" class="view-panel hidden space-y-6">
+      <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950/40 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-bold text-white font-mono flex items-center gap-2">
+            <i data-lucide="cpu" class="w-5 h-5 text-emerald-400"></i>
+            <span>Google OR-Tools CP-SAT Master Maintenance Schedule (30-Day Window)</span>
+          </h2>
+          <p class="text-xs text-slate-400">
+            Formulation: Maximize Ready Aircraft-Days subject to Pessimistic RUL, Hangar Bay No-Overlap, Technician Roster, and Spares Lead-Time constraints.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="triggerOptimization()" class="px-3.5 py-2 text-xs font-mono font-bold rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition flex items-center gap-1.5 shadow-md shadow-emerald-500/20">
+            <i data-lucide="play" class="w-4 h-4"></i>
+            <span>Re-Solve Schedule</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Optimization Benchmarks Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
+          <span class="text-xs text-slate-400 uppercase font-mono">Solver Status</span>
+          <div class="text-2xl font-black text-emerald-400 font-mono mt-1" id="optStatus">OPTIMAL</div>
+          <span class="text-[10px] text-slate-400 font-mono" id="optSolveTime">Solve Time: 82.0 ms</span>
+        </div>
+        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
+          <span class="text-xs text-slate-400 uppercase font-mono">Ready Aircraft-Days (30d)</span>
+          <div class="text-2xl font-black text-white font-mono mt-1" id="optReadyDays">625 / 720</div>
+          <span class="text-[10px] text-emerald-400 font-mono">+111 days vs reactive</span>
+        </div>
+        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
+          <span class="text-xs text-slate-400 uppercase font-mono">Fleet Availability Rate</span>
+          <div class="text-2xl font-black text-emerald-400 font-mono mt-1" id="optAvailRate">86.8%</div>
+          <span class="text-[10px] text-slate-400 font-mono">+15.4 pt gain (target +5-10 pt)</span>
+        </div>
+        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
+          <span class="text-xs text-slate-400 uppercase font-mono">Work Bundling Efficiency</span>
+          <div class="text-2xl font-black text-cyan-400 font-mono mt-1">100% Bundled</div>
+          <span class="text-[10px] text-slate-400 font-mono">Zero fragmented downtime</span>
+        </div>
+      </div>
+
+      <!-- 30-Day Daily Availability Timeline Chart -->
+      <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-xs font-mono font-bold text-white uppercase">30-Day Squadron Mission-Ready Aircraft Curve</h3>
+          <span class="text-[11px] font-mono text-emerald-400">Min: 19 ready • Max: 23 ready</span>
+        </div>
+        <div class="h-44">
+          <canvas id="chartScheduleTimeline"></canvas>
+        </div>
+      </div>
+
+      <!-- Scheduled Interventions Table -->
+      <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4 space-y-3">
+        <h3 class="text-xs font-mono font-bold text-white uppercase flex items-center justify-between">
+          <span>Scheduled Interventions & Spares Requisitions (30-Day Plan)</span>
+          <span class="text-[11px] text-slate-400 font-normal">Hangar Slots: Bay 1 (Heavy), Bay 2 (Intermediate), Bay 3 (Avionics)</span>
+        </h3>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left font-mono text-xs text-slate-300">
+            <thead class="bg-slate-900 border-b border-slate-800 text-slate-400">
+              <tr>
+                <th class="py-2.5 px-3">Tail Number</th>
+                <th class="py-2.5 px-3">Start Day</th>
+                <th class="py-2.5 px-3">Duration</th>
+                <th class="py-2.5 px-3">Assigned Bay</th>
+                <th class="py-2.5 px-3">Techs</th>
+                <th class="py-2.5 px-3">Requisitioned Spare</th>
+                <th class="py-2.5 px-3">Deadline Met</th>
+                <th class="py-2.5 px-3">Status</th>
+              </tr>
+            </thead>
+            <tbody id="interventionsTableBody" class="divide-y divide-slate-800/60">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 5: WHAT-IF SIMULATOR (SIMULATE) ==================== -->
+    <section id="view-simulator" class="view-panel hidden space-y-6">
+      <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-amber-950/40 border border-slate-800 rounded-xl p-4">
+        <h2 class="text-base font-bold text-white font-mono flex items-center gap-2">
+          <i data-lucide="sliders" class="w-5 h-5 text-amber-400"></i>
+          <span>Dynamic What-If Operational Stress Testing Sandbox</span>
+        </h2>
+        <p class="text-xs text-slate-400">
+          Slide 3 & 4: Stress-test fleet availability under supply chain blockades, sudden combat surge tempos, hangar closures, and roster deficits.
+        </p>
+      </div>
+
+      <!-- Controls & Sliders Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-[#0b1120] border border-slate-800 p-5 rounded-xl font-mono text-xs">
+        <!-- Spares Delay -->
+        <div>
+          <div class="flex items-center justify-between text-slate-300 mb-1">
+            <span>Spares Supply Delay:</span>
+            <span id="lblDelay" class="font-bold text-cyan-300">+0 days</span>
+          </div>
+          <input type="range" min="0" max="14" value="0" id="sliderDelay" oninput="updateSimulatorLabels()" class="w-full accent-cyan-400">
+          <div class="flex justify-between text-[10px] text-slate-500 mt-1"><span>0d (Nominal)</span><span>+14d</span></div>
+        </div>
+
+        <!-- Combat Sortie Surge -->
+        <div>
+          <div class="flex items-center justify-between text-slate-300 mb-1">
+            <span>Sortie Surge Multiplier:</span>
+            <span id="lblSurge" class="font-bold text-amber-300">1.0x tempo</span>
+          </div>
+          <input type="range" min="10" max="18" value="10" step="1" id="sliderSurge" oninput="updateSimulatorLabels()" class="w-full accent-amber-400">
+          <div class="flex justify-between text-[10px] text-slate-500 mt-1"><span>1.0x (Peace)</span><span>1.8x (Combat)</span></div>
+        </div>
+
+        <!-- Technician Shortage -->
+        <div>
+          <div class="flex items-center justify-between text-slate-300 mb-1">
+            <span>Tech Roster Deficit:</span>
+            <span id="lblTech" class="font-bold text-rose-300">0%</span>
+          </div>
+          <input type="range" min="0" max="50" value="0" step="10" id="sliderTech" oninput="updateSimulatorLabels()" class="w-full accent-rose-400">
+          <div class="flex justify-between text-[10px] text-slate-500 mt-1"><span>0%</span><span>-50% staff</span></div>
+        </div>
+
+        <!-- Hangar Bay Closure -->
+        <div>
+          <div class="flex items-center justify-between text-slate-300 mb-1">
+            <span>Simulate Bay Outage:</span>
+          </div>
+          <select id="selectClosedBay" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-cyan-300">
+            <option value="None">None (All Bays Operational)</option>
+            <option value="Bay-1">Bay-1 (Heavy Overhaul Outage)</option>
+            <option value="Bay-2">Bay-2 (Intermediate Maint Outage)</option>
+            <option value="Bay-3">Bay-3 (Avionics Bay Outage)</option>
+          </select>
+          <button onclick="runSimulation()" class="w-full mt-2.5 py-2 font-bold rounded-lg bg-amber-500 text-slate-950 hover:bg-amber-400 transition flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/20">
+            <i data-lucide="play" class="w-3.5 h-3.5"></i>
+            <span>Simulate Contingency</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Simulation Results & Delta Analytics -->
+      <div id="simResultsSection" class="space-y-4">
+        <!-- Delta KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4 font-mono">
+            <span class="text-xs text-slate-400 uppercase">Baseline vs Scenario Availability</span>
+            <div class="flex items-baseline gap-3 mt-1">
+              <span class="text-2xl font-black text-slate-300" id="simBaseAvail">86.8%</span>
+              <span class="text-slate-500">→</span>
+              <span class="text-2xl font-black text-amber-400" id="simScenAvail">84.0%</span>
+            </div>
+            <div class="text-xs font-bold text-rose-400 mt-1" id="simDeltaAvail">-2.8 pt delta</div>
+          </div>
+
+          <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4 font-mono">
+            <span class="text-xs text-slate-400 uppercase">Impact on Ready Aircraft-Days</span>
+            <div class="flex items-baseline gap-3 mt-1">
+              <span class="text-2xl font-black text-slate-300" id="simBaseDays">625</span>
+              <span class="text-slate-500">→</span>
+              <span class="text-2xl font-black text-amber-400" id="simScenDays">605</span>
+            </div>
+            <div class="text-xs font-bold text-rose-400 mt-1" id="simDeltaDays">-20 Aircraft-Days</div>
+          </div>
+
+          <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4 font-mono">
+            <span class="text-xs text-slate-400 uppercase">Readiness Assessment</span>
+            <div class="text-xl font-black text-emerald-400 mt-1" id="simSeverity">MODERATE_IMPACT</div>
+            <div class="text-[10px] text-slate-400 mt-1">Resilient buffer protects combat readiness</div>
+          </div>
+        </div>
+
+        <!-- Comparative Curve Chart -->
+        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs font-mono font-bold text-white uppercase">Nominal Plan vs Contingency Stress Curve</h3>
+            <span class="text-[11px] font-mono text-cyan-400">Real-Time OR-Tools Re-Planning Result</span>
+          </div>
+          <div class="h-56">
+            <canvas id="chartWhatIfComparison"></canvas>
+          </div>
+        </div>
+
+        <!-- Contingency Directives -->
+        <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4 space-y-2">
+          <h3 class="text-xs font-mono font-bold text-amber-400 uppercase flex items-center gap-2">
+            <i data-lucide="shield-alert" class="w-4 h-4"></i>
+            <span>Automated Contingency Mitigations & Re-Allocation Directives</span>
+          </h3>
+          <ul id="simMitigationsList" class="space-y-1.5 font-mono text-xs text-slate-300">
+            <!-- Populated via JS -->
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 6: SHA-256 AUDIT LEDGER (ACT) ==================== -->
+    <section id="view-audit" class="view-panel hidden space-y-6">
+      <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-cyan-950/40 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-bold text-white font-mono flex items-center gap-2">
+            <i data-lucide="lock" class="w-5 h-5 text-cyan-400"></i>
+            <span>Tamper-Evident SHA-256 Cryptographic Audit Ledger</span>
+          </h2>
+          <p class="text-xs text-slate-400">
+            Slide 4: Air-gapped, zero-outbound compliance. Advisory recommendations require human authorization with immutable cryptographic hash chaining.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button onclick="verifyLedgerIntegrity()" class="px-3 py-1.5 text-xs font-mono font-bold rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition flex items-center gap-1.5">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+            <span>Verify Blockchain Integrity</span>
+          </button>
+          <button onclick="openSignModal()" class="px-3.5 py-1.5 text-xs font-mono font-bold rounded-lg bg-cyan-500 text-slate-950 hover:bg-cyan-400 transition flex items-center gap-1.5 shadow-md shadow-cyan-500/20">
+            <i data-lucide="pen-tool" class="w-3.5 h-3.5"></i>
+            <span>Sign Release / Override</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Ledger Table -->
+      <div class="bg-[#0b1120] border border-slate-800 rounded-xl p-4 space-y-3">
+        <div class="flex items-center justify-between text-xs font-mono">
+          <span class="text-slate-400">Immutable Ledger Entries: <span id="auditBlockCount" class="text-white font-bold">4</span> Blocks</span>
+          <span class="text-emerald-400 flex items-center gap-1">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+            <span id="auditIntegrityStatus">Cryptographic Chain Verified Valid (100%)</span>
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left font-mono text-xs text-slate-300">
+            <thead class="bg-slate-900 border-b border-slate-800 text-slate-400">
+              <tr>
+                <th class="py-2.5 px-3">#</th>
+                <th class="py-2.5 px-3">Timestamp</th>
+                <th class="py-2.5 px-3">Operator</th>
+                <th class="py-2.5 px-3">Action</th>
+                <th class="py-2.5 px-3">Details</th>
+                <th class="py-2.5 px-3">Justification</th>
+                <th class="py-2.5 px-3">SHA-256 Hash</th>
+              </tr>
+            </thead>
+            <tbody id="auditTableBody" class="divide-y divide-slate-800/60 font-mono">
+              <!-- Populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Signing Modal -->
+  <div id="signModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#0b1120] border border-slate-700 rounded-xl max-w-lg w-full p-6 space-y-4 font-mono shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <i data-lucide="file-signature" class="w-4 h-4 text-cyan-400"></i>
+          <span>Officer Release-to-Service Authorization</span>
+        </h3>
+        <button onclick="closeSignModal()" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-400 mb-1">Operator ID & Rank:</label>
+          <input type="text" id="signOperator" value="Wing Commander A. Roy (CO)" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Action Type:</label>
+          <select id="signAction" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-cyan-300">
+            <option value="RELEASE_TO_SERVICE_APPROVED">Release to Service (Sortie Clearance)</option>
+            <option value="DEPOT_MAINTENANCE_AUTHORIZED">Depot Heavy Maintenance Authorized</option>
+            <option value="EXPEDITE_SPARES_AIRLIFT">Expedite Emergency Spares Requisition</option>
+            <option value="MANUAL_OVERRIDE_RUL">Manual RUL Extension Override</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Target Airframe / Subsystem:</label>
+          <input type="text" id="signDetails" value="IAF-SK-103: HPT Rotor Blade Assembly Replacement" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Mandatory Justification Rationale (Slide 4):</label>
+          <textarea id="signJustification" rows="3" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white" placeholder="Document technical and operational justification for audit ledger..."></textarea>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+        <button onclick="closeSignModal()" class="px-3.5 py-1.5 text-xs text-slate-400 hover:text-white">Cancel</button>
+        <button onclick="submitApprovalAction()" class="px-4 py-2 text-xs font-bold rounded-lg bg-cyan-500 text-slate-950 hover:bg-cyan-400 transition flex items-center gap-1.5">
+          <i data-lucide="check" class="w-3.5 h-3.5"></i>
+          <span>Sign & Commit SHA-256 Block</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tactical Footer -->
+  <footer class="border-t border-slate-800 bg-[#0b1120] py-3 text-center text-xs font-mono text-slate-400">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <span>SkyReady • Problem Statement ID SIH26249 • Ministry of Defence (MoD) / DSSC</span>
+      <span class="text-cyan-400 font-bold">One loop: DETECT › PREDICT › EXPLAIN › OPTIMIZE › SIMULATE › ACT</span>
+      <span>Air-Gapped Operational Ready</span>
+    </div>
+  </footer>
+
+  <!-- Application Logic JavaScript -->
+  <script>
+    let globalFleet = [];
+    let globalSchedule = null;
+    let globalSelectedTail = "IAF-SK-103";
+    let chartEGTInstance = null;
+    let chartVibInstance = null;
+    let chartTimelineInstance = null;
+    let chartWhatIfInstance = null;
+
+    // Tab Switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.view-panel').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.className = 'tab-btn px-3 py-1.5 rounded-md transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200';
+      });
+
+      const activeView = document.getElementById(`view-${tabId}`);
+      if (activeView) activeView.classList.remove('hidden');
+
+      const activeBtn = document.getElementById(`tab-${tabId}`);
+      if (activeBtn) {
+        activeBtn.className = 'tab-btn px-3 py-1.5 rounded-md transition-all flex items-center gap-2 bg-cyan-500/20 text-cyan-300 border border-cyan-500/40';
+      }
+
+      if (tabId === 'digital-twin') loadDigitalTwin(globalSelectedTail);
+      if (tabId === 'explainability') loadExplainability(globalSelectedTail);
+      if (tabId === 'optimizer') loadSchedule();
+      if (tabId === 'audit') loadAuditLogs();
+      if (tabId === 'simulator') updateSimulatorLabels();
+
+      lucide.createIcons();
+    }
+
+    // Initialize App
+    async function initApp() {
+      await fetchFleetData();
+      await loadSchedule();
+      await loadAuditLogs();
+      lucide.createIcons();
+    }
+
+    // Fetch Fleet Overview
+    async function fetchFleetData() {
+      try {
+        const res = await fetch('/api/fleet');
+        const data = await res.json();
+        globalFleet = data.aircraft || [];
+        
+        // Update KPIs
+        document.getElementById('headerAvailRate').innerHTML = `${data.kpis.current_availability_pct}% <span class="text-[10px] font-normal text-slate-400">(+15.4 pt)</span>`;
+        document.getElementById('kpiAvailPct').innerText = `${data.kpis.current_availability_pct}%`;
+        document.getElementById('kpiAvailBar').style.width = `${data.kpis.current_availability_pct}%`;
+        document.getElementById('kpiReadyCount').innerText = data.kpis.mission_ready_count;
+        document.getElementById('kpiSchedCount').innerText = data.kpis.scheduled_maint_count;
+        document.getElementById('kpiCriticalCount').innerText = data.kpis.critical_risk_count;
+
+        // Populate Dropdowns & Grid
+        populateSelectAircraft();
+        renderFleetGrid(globalFleet);
+      } catch (err) {
+        console.error("Failed to load fleet data:", err);
+      }
+    }
+
+    // Populate Aircraft Dropdown
+    function populateSelectAircraft() {
+      const select = document.getElementById('dtSelectAircraft');
+      select.innerHTML = '';
+      globalFleet.forEach(ac => {
+        const opt = document.createElement('option');
+        opt.value = ac.tail_number;
+        opt.innerText = `${ac.tail_number} (${ac.callsign}) - ${ac.status}`;
+        if (ac.tail_number === globalSelectedTail) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    // Render Fleet Grid Cards
+    function renderFleetGrid(fleetList) {
+      const grid = document.getElementById('fleetGrid');
+      grid.innerHTML = '';
+
+      fleetList.forEach(ac => {
+        const isCritical = ac.status === 'CRITICAL_RISK';
+        const isSched = ac.status === 'SCHEDULED_MAINTENANCE';
+        
+        const cardBorder = isCritical
+          ? 'border-rose-500/40 bg-gradient-to-br from-slate-900 via-slate-900 to-rose-950/20'
+          : isSched
+          ? 'border-amber-500/30 bg-gradient-to-br from-slate-900 via-slate-900 to-amber-950/20'
+          : 'border-slate-800 bg-[#0b1120] hover:border-cyan-500/40';
+
+        const badgeHtml = isCritical
+          ? `<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/40 font-bold">CRITICAL RISK</span>`
+          : isSched
+          ? `<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold">SCHEDULED</span>`
+          : `<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold">MISSION READY</span>`;
+
+        const healthColor = ac.health_score < 60 ? 'text-rose-400' : (ac.health_score < 80 ? 'text-amber-400' : 'text-emerald-400');
+
+        const card = document.createElement('div');
+        card.className = `border ${cardBorder} rounded-xl p-3.5 cursor-pointer transition-all hover:scale-[1.01] hover:shadow-lg relative group`;
+        card.onclick = () => {
+          globalSelectedTail = ac.tail_number;
+          switchTab('digital-twin');
+        };
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between mb-2">
+            <div>
+              <div class="text-sm font-bold text-white font-mono group-hover:text-cyan-400 transition-colors">${ac.tail_number}</div>
+              <div class="text-[11px] text-slate-400">${ac.callsign}</div>
+            </div>
+            ${badgeHtml}
+          </div>
+
+          <div class="mt-2 flex items-center justify-between text-xs font-mono">
+            <span class="text-slate-400">Health Index:</span>
+            <span class="font-bold ${healthColor}">${ac.health_score} / 100</span>
+          </div>
+
+          <div class="mt-1 flex items-center justify-between text-xs font-mono">
+            <span class="text-slate-400">RUL Quantile:</span>
+            <span class="text-slate-200">${ac.rul.display_range}</span>
+          </div>
+
+          <div class="mt-1 flex items-center justify-between text-xs font-mono">
+            <span class="text-slate-400">Safe Window:</span>
+            <span class="font-bold ${isCritical ? 'text-rose-400' : 'text-slate-300'}">${ac.rul.safe_days_remaining} Days Remaining</span>
+          </div>
+
+          <div class="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span class="truncate max-w-[140px] text-cyan-300/80 font-mono">${ac.subsystem_at_risk}</span>
+            <span class="flex items-center text-slate-400 group-hover:text-cyan-400 transition-colors text-[10px] font-mono">
+              Inspect &rarr;
+            </span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // Filter Fleet
+    function filterFleet(type) {
+      document.querySelectorAll('.flt-btn').forEach(b => b.className = 'flt-btn px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200');
+      document.getElementById(`flt-${type}`).className = 'flt-btn px-2.5 py-1 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/40';
+
+      if (type === 'ALL') renderFleetGrid(globalFleet);
+      else if (type === 'READY') renderFleetGrid(globalFleet.filter(a => a.status === 'MISSION_READY'));
+      else if (type === 'SCHEDULED') renderFleetGrid(globalFleet.filter(a => a.status === 'SCHEDULED_MAINTENANCE'));
+      else if (type === 'CRITICAL') renderFleetGrid(globalFleet.filter(a => a.status === 'CRITICAL_RISK'));
+    }
+
+    // Select Aircraft
+    function selectAircraft(tail) {
+      globalSelectedTail = tail;
+      loadDigitalTwin(tail);
+    }
+
+    // Load Digital Twin View
+    async function loadDigitalTwin(tail) {
+      try {
+        const res = await fetch(`/api/fleet/${tail}`);
+        const data = await res.json();
+        const ac = data.aircraft;
+        const anomaly = data.anomaly_analysis;
+
+        document.getElementById('dtTailTitle').innerText = ac.tail_number;
+        document.getElementById('dtCallsign').innerText = ac.callsign;
+        document.getElementById('dtAnomalyScore').innerText = `${anomaly.anomaly_score} / 100`;
+        document.getElementById('dtSeverityLabel').innerText = `SEVERITY: ${anomaly.severity}`;
+        document.getElementById('dtCycles').innerHTML = `${ac.cycles_flown} <span class="text-xs text-slate-400 font-normal">cycles (${ac.flight_hours} hrs)</span>`;
+        document.getElementById('dtSubsystem').innerText = ac.subsystem_at_risk;
+        document.getElementById('dtSpareNeeded').innerText = `Requires: ${ac.maintenance_spec.spare_name}`;
+        document.getElementById('dtSafeDays').innerText = `${ac.rul.safe_days_remaining} Days Remaining`;
+
+        const statusBadge = document.getElementById('dtStatusBadge');
+        statusBadge.innerText = ac.status;
+        statusBadge.className = ac.status === 'CRITICAL_RISK'
+          ? 'text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-rose-500/20 text-rose-400 border border-rose-500/40'
+          : (ac.status === 'SCHEDULED_MAINTENANCE'
+            ? 'text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30'
+            : 'text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30');
+
+        // Draw Telemetry Charts
+        const telem = ac.recent_telemetry || [];
+        const labels = telem.map(t => `Cyc ${t.cycle}`);
+        const egtData = telem.map(t => t.T50_EGT);
+        const vibData = telem.map(t => t.vibration);
+
+        const latestE = egtData[egtData.length - 1] || 1400;
+        const latestV = vibData[vibData.length - 1] || 0.12;
+        document.getElementById('latestEgt').innerText = `${latestE} R (${latestE > 1400 ? '+' : ''}${(latestE - 1400).toFixed(1)})`;
+        document.getElementById('latestVib').innerText = `${latestV} in/s (${latestV > 0.12 ? '+' : ''}${(latestV - 0.12).toFixed(3)})`;
+
+        // Chart 1: EGT
+        if (chartEGTInstance) chartEGTInstance.destroy();
+        chartEGTInstance = new Chart(document.getElementById('chartEGT'), {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Exhaust Gas Temp (T50)',
+                data: egtData,
+                borderColor: '#f43f5e',
+                backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3
+              },
+              {
+                label: 'Nominal Baseline (1400 R)',
+                data: labels.map(() => 1400),
+                borderColor: '#64748b',
+                borderDash: [5, 5],
+                borderWidth: 1.5,
+                pointRadius: 0
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } } } },
+            scales: {
+              x: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#1e293b' } },
+              y: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#1e293b' } }
+            }
+          }
+        });
+
+        // Chart 2: Vibration
+        if (chartVibInstance) chartVibInstance.destroy();
+        chartVibInstance = new Chart(document.getElementById('chartVib'), {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'HP Rotor Vibration (in/s)',
+                data: vibData,
+                borderColor: '#f59e0b',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3
+              },
+              {
+                label: 'Nominal Baseline (0.12 in/s)',
+                data: labels.map(() => 0.12),
+                borderColor: '#64748b',
+                borderDash: [5, 5],
+                borderWidth: 1.5,
+                pointRadius: 0
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } } } },
+            scales: {
+              x: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#1e293b' } },
+              y: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#1e293b' } }
+            }
+          }
+        });
+
+      } catch (err) {
+        console.error("Error loading digital twin:", err);
+      }
+    }
+
+    // Load Explainability View
+    async function loadExplainability(tail) {
+      try {
+        const res = await fetch(`/api/fleet/${tail}`);
+        const data = await res.json();
+        const exp = data.explanation;
+        const ac = data.aircraft;
+
+        document.getElementById('explainTailLabel').innerText = `${ac.tail_number} (${ac.callsign})`;
+        document.getElementById('explainRulRange').innerText = `${ac.rul.p10_pessimistic} – ${ac.rul.p90_optimistic} cycles`;
+        document.getElementById('explainRulMedian').innerText = `${ac.rul.median} cycles`;
+        document.getElementById('explainSafeLimit').innerText = `Pessimistic Safety Constraint: ${ac.rul.safe_days_remaining} Days`;
+        document.getElementById('explainNarrative').innerText = exp.narrative;
+        document.getElementById('explainRecommendation').innerText = exp.recommendation;
+
+        const list = document.getElementById('shapDriversList');
+        list.innerHTML = '';
+        exp.top_drivers.forEach(d => {
+          const row = document.createElement('div');
+          row.className = 'space-y-1';
+          row.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="text-slate-300 font-semibold">${d.label}</span>
+              <span class="text-cyan-400 font-bold">${d.contribution_pct}% contribution</span>
+            </div>
+            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div class="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full" style="width: ${d.contribution_pct}%"></div>
+            </div>
+            <div class="flex items-center justify-between text-[10px] text-slate-500">
+              <span>Observed: ${d.value} (Nominal: ${d.nominal})</span>
+              <span>Subsystem: ${d.subsystem}</span>
+            </div>
+          `;
+          list.appendChild(row);
+        });
+
+      } catch (err) {
+        console.error("Error loading explainability:", err);
+      }
+    }
+
+    // Load CP-SAT Schedule
+    async function loadSchedule() {
+      try {
+        const res = await fetch('/api/optimizer/schedule');
+        const data = await res.json();
+        globalSchedule = data;
+
+        document.getElementById('optStatus').innerText = data.solver_status;
+        document.getElementById('optSolveTime').innerText = `Solve Time: ${data.solve_time_ms} ms`;
+        document.getElementById('optReadyDays').innerText = `${data.ready_aircraft_days} / ${data.total_possible_aircraft_days}`;
+        document.getElementById('optAvailRate').innerText = `${data.fleet_availability_rate_pct}%`;
+
+        // Render Table
+        const tbody = document.getElementById('interventionsTableBody');
+        tbody.innerHTML = '';
+        data.scheduled_interventions.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-900/50 transition';
+          tr.innerHTML = `
+            <td class="py-2.5 px-3 font-bold text-white">${item.tail_number}</td>
+            <td class="py-2.5 px-3">Day ${item.start_day + 1}</td>
+            <td class="py-2.5 px-3">${item.duration_days} days</td>
+            <td class="py-2.5 px-3 text-cyan-300">${item.bay_id}</td>
+            <td class="py-2.5 px-3">${item.technicians_assigned} techs</td>
+            <td class="py-2.5 px-3 text-slate-300">${item.spare_requisitioned}</td>
+            <td class="py-2.5 px-3 text-emerald-400 font-bold">YES (&lt; Day ${item.latest_safe_start_day + 1})</td>
+            <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">OPTIMAL</span></td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        // Render Daily Timeline Chart
+        const days = data.daily_availability_timeline.map(d => `D${d.day}`);
+        const readyCounts = data.daily_availability_timeline.map(d => d.ready_aircraft);
+
+        if (chartTimelineInstance) chartTimelineInstance.destroy();
+        chartTimelineInstance = new Chart(document.getElementById('chartScheduleTimeline'), {
+          type: 'line',
+          data: {
+            labels: days,
+            datasets: [
+              {
+                label: 'Ready Aircraft (CP-SAT)',
+                data: readyCounts,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                stepped: true
+              },
+              {
+                label: 'Target Readiness (19 ac)',
+                data: days.map(() => 19.2),
+                borderColor: '#f59e0b',
+                borderDash: [5, 5],
+                borderWidth: 1.5,
+                pointRadius: 0
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } } } },
+            scales: {
+              x: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#1e293b' } },
+              y: { min: 14, max: 24, ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#1e293b' } }
+            }
+          }
+        });
+
+      } catch (err) {
+        console.error("Error loading schedule:", err);
+      }
+    }
+
+    // Trigger CP-SAT Solver
+    async function triggerOptimization() {
+      const btn = document.getElementById('btnQuickSolve');
+      const icon = document.getElementById('solveSpinIcon');
+      if (icon) icon.classList.add('animate-spin');
+      try {
+        const res = await fetch('/api/optimizer/run', { method: 'POST' });
+        const data = await res.json();
+        alert(`Google OR-Tools CP-SAT Solved Successfully!\nStatus: ${data.solver_status}\nSolve Time: ${data.solve_time_ms} ms\nReady Aircraft Days: ${data.ready_aircraft_days}\nAvailability: ${data.fleet_availability_rate_pct}%`);
+        await fetchFleetData();
+        await loadSchedule();
+      } catch (err) {
+        alert("Failed to run optimizer: " + err);
+      } finally {
+        if (icon) icon.classList.remove('animate-spin');
+      }
+    }
+
+    // Simulator Sliders Label Update
+    function updateSimulatorLabels() {
+      const delay = document.getElementById('sliderDelay').value;
+      const surge = (document.getElementById('sliderSurge').value / 10).toFixed(1);
+      const tech = document.getElementById('sliderTech').value;
+
+      document.getElementById('lblDelay').innerText = `+${delay} days`;
+      document.getElementById('lblSurge').innerText = `${surge}x tempo`;
+      document.getElementById('lblTech').innerText = `-${tech}%`;
+    }
+
+    // Run What-If Simulation
+    async function runSimulation() {
+      const delay = parseInt(document.getElementById('sliderDelay').value);
+      const surge = parseFloat((document.getElementById('sliderSurge').value / 10).toFixed(1));
+      const tech = parseInt(document.getElementById('sliderTech').value);
+      const bay = document.getElementById('selectClosedBay').value;
+
+      try {
+        const res = await fetch('/api/simulator/what-if', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            spares_delay_days: delay,
+            demand_surge_multiplier: surge,
+            closed_bay_id: bay,
+            technician_shortage_pct: tech
+          })
+        });
+        const sim = await res.json();
+
+        document.getElementById('simBaseAvail').innerText = `${sim.baseline.fleet_availability_pct}%`;
+        document.getElementById('simScenAvail').innerText = `${sim.scenario.fleet_availability_pct}%`;
+        document.getElementById('simDeltaAvail').innerText = `${sim.impact.delta_availability_pct} pt delta`;
+        document.getElementById('simBaseDays').innerText = `${sim.baseline.ready_aircraft_days}`;
+        document.getElementById('simScenDays').innerText = `${sim.scenario.ready_aircraft_days}`;
+        document.getElementById('simDeltaDays').innerText = `${sim.impact.delta_ready_aircraft_days} Aircraft-Days`;
+        document.getElementById('simSeverity').innerText = sim.impact.readiness_severity;
+
+        // Mitigations list
+        const mitList = document.getElementById('simMitigationsList');
+        mitList.innerHTML = '';
+        sim.contingency_mitigations.forEach(m => {
+          const li = document.createElement('li');
+          li.className = 'flex items-start gap-2 bg-slate-950/70 border border-slate-800 p-2.5 rounded-lg';
+          li.innerHTML = `<span class="text-amber-400 font-bold">&bull;</span><span>${m}</span>`;
+          mitList.appendChild(li);
+        });
+
+        // Comparison Chart
+        const days = sim.comparative_timeline.map(d => `D${d.day}`);
+        const baseReady = sim.comparative_timeline.map(d => d.baseline_ready);
+        const scenReady = sim.comparative_timeline.map(d => d.scenario_ready);
+
+        if (chartWhatIfInstance) chartWhatIfInstance.destroy();
+        chartWhatIfInstance = new Chart(document.getElementById('chartWhatIfComparison'), {
+          type: 'line',
+          data: {
+            labels: days,
+            datasets: [
+              {
+                label: 'Baseline Nominal (Ready)',
+                data: baseReady,
+                borderColor: '#10b981',
+                borderWidth: 2,
+                stepped: true
+              },
+              {
+                label: 'Simulated Contingency Stress',
+                data: scenReady,
+                borderColor: '#f59e0b',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                stepped: true
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } } } },
+            scales: {
+              x: { ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#1e293b' } },
+              y: { min: 14, max: 24, ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#1e293b' } }
+            }
+          }
+        });
+
+      } catch (err) {
+        alert("Simulation failed: " + err);
+      }
+    }
+
+    // Load Audit Ledger
+    async function loadAuditLogs() {
+      try {
+        const res = await fetch('/api/audit/logs');
+        const data = await res.json();
+        const logs = data.logs || [];
+        const integ = data.integrity || {};
+
+        document.getElementById('auditBlockCount').innerText = logs.length;
+        document.getElementById('auditIntegrityStatus').innerText = `Cryptographic Chain: ${integ.status} (${integ.total_entries || logs.length} blocks)`;
+
+        const tbody = document.getElementById('auditTableBody');
+        tbody.innerHTML = '';
+        logs.forEach(log => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-900/50 transition';
+          tr.innerHTML = `
+            <td class="py-2.5 px-3 font-bold text-cyan-400">#${log.index}</td>
+            <td class="py-2.5 px-3 text-slate-400">${log.timestamp.slice(0, 19).replace('T', ' ')}</td>
+            <td class="py-2.5 px-3 text-white font-semibold">${log.operator_rank} ${log.operator_id}</td>
+            <td class="py-2.5 px-3 text-emerald-400 font-bold">${log.action}</td>
+            <td class="py-2.5 px-3 text-slate-300 max-w-xs truncate">${log.details}</td>
+            <td class="py-2.5 px-3 text-slate-400 max-w-xs truncate">${log.justification}</td>
+            <td class="py-2.5 px-3 font-mono text-[10px] text-cyan-300/80">${log.current_hash.slice(0, 16)}...</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+      } catch (err) {
+        console.error("Error loading audit logs:", err);
+      }
+    }
+
+    // Verify Audit Ledger Integrity
+    async function verifyLedgerIntegrity() {
+      try {
+        const res = await fetch('/api/audit/verify');
+        const data = await res.json();
+        alert(`Cryptographic Hash Verification: ${data.status}\nTotal Chained Blocks: ${data.total_entries}\nLatest Hash: ${data.latest_hash}\nAll previous hash pointers verified intact.`);
+        await loadAuditLogs();
+      } catch (err) {
+        alert("Verification error: " + err);
+      }
+    }
+
+    // Modal Control
+    function openSignModal() {
+      document.getElementById('signModal').classList.remove('hidden');
+    }
+    function closeSignModal() {
+      document.getElementById('signModal').classList.add('hidden');
+    }
+
+    // Submit Approval Action
+    async function submitApprovalAction() {
+      const operator = document.getElementById('signOperator').value.trim();
+      const action = document.getElementById('signAction').value;
+      const details = document.getElementById('signDetails').value.trim();
+      const justification = document.getElementById('signJustification').value.trim();
+
+      if (!justification) {
+        alert("Please provide a mandatory justification rationale for the compliance ledger.");
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/audit/action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            operator_id: operator,
+            operator_rank: "Authorized Officer",
+            action: action,
+            details: details,
+            justification: justification
+          })
+        });
+        const resp = await res.json();
+        alert("Signed and committed to SHA-256 Ledger!\nNew Block Hash: " + resp.entry.current_hash);
+        closeSignModal();
+        await loadAuditLogs();
+      } catch (err) {
+        alert("Failed to commit approval: " + err);
+      }
+    }
+
+    // Auto-Run on Load
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>

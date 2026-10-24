@@ -23,41 +23,51 @@ app.add_middleware(
 # Register API routes under /api
 app.include_router(router, prefix="/api")
 
-# Serve Frontend static assets if built
+# Serve Web Dashboard
+static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "static"))
 frontend_dist_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
 
-if os.path.exists(frontend_dist_dir):
-    assets_dir = os.path.join(frontend_dist_dir, "assets")
-    if os.path.exists(assets_dir):
-        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
-    @app.get("/{full_path:path}")
-    def serve_spa(full_path: str):
-        # If path starts with api or docs, let FastAPI handle it
-        if full_path.startswith("api") or full_path.startswith("docs") or full_path.startswith("openapi.json"):
-            return None
-        index_file = os.path.join(frontend_dist_dir, "index.html")
-        if os.path.exists(index_file):
-            return FileResponse(index_file)
-        return {"error": "Frontend build not found"}
-else:
-    @app.get("/")
-    def root():
-        return {
-            "project": settings.PROJECT_NAME,
-            "version": settings.VERSION,
-            "problem_statement_id": settings.PROBLEM_STATEMENT_ID,
-            "team": settings.TEAM_NAME,
-            "status": "OPERATIONAL",
-            "endpoints": {
-                "fleet": "/api/fleet",
-                "schedule": "/api/optimizer/schedule",
-                "simulator": "/api/simulator/what-if",
-                "spares": "/api/spares",
-                "audit": "/api/audit/logs",
-                "docs": "/docs"
-            }
+@app.get("/", response_class=FileResponse)
+def root_dashboard():
+    # If React frontend/dist exists and has index.html, prioritize built SPA
+    if os.path.exists(frontend_dist_dir):
+        spa_index = os.path.join(frontend_dist_dir, "index.html")
+        if os.path.exists(spa_index):
+            return FileResponse(spa_index)
+            
+    # Default to high-fidelity Tactical C2 dashboard
+    static_index = os.path.join(static_dir, "index.html")
+    if os.path.exists(static_index):
+        return FileResponse(static_index)
+        
+    return FileResponse(os.path.join(static_dir, "index.html"))
+
+@app.get("/dashboard", response_class=FileResponse)
+def get_dashboard():
+    static_index = os.path.join(static_dir, "index.html")
+    return FileResponse(static_index)
+
+@app.get("/health")
+def health_check():
+    return {
+        "project": settings.PROJECT_NAME,
+        "version": settings.VERSION,
+        "problem_statement_id": settings.PROBLEM_STATEMENT_ID,
+        "team": settings.TEAM_NAME,
+        "status": "OPERATIONAL",
+        "endpoints": {
+            "dashboard": "/dashboard",
+            "fleet": "/api/fleet",
+            "schedule": "/api/optimizer/schedule",
+            "simulator": "/api/simulator/what-if",
+            "spares": "/api/spares",
+            "audit": "/api/audit/logs",
+            "docs": "/docs"
         }
+    }
 
 if __name__ == "__main__":
     import uvicorn
